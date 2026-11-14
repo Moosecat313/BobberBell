@@ -1,32 +1,183 @@
-﻿# BobberBell 1.0
+<p align="center">
+  <img src="Assets/BobberBell_logo_blend.png" alt="BobberBell" width="480">
+</p>
 
-Listens for a specific sound, then pushes a specified button, hands-free.
+<h1 align="center">BobberBell 1.0</h1>
+
+<p align="center"><b>Listens for a specific sound, then pushes a specified button, hands-free.</b></p>
+
+<p align="center">
+  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.0">Download v1.0.0</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#how-to-use">How to use</a> ·
+  <a href="#faq--troubleshooting">FAQ</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
+</p>
 
 BobberBell is a small Windows desktop app (C# / WinForms, .NET 10) built for World of Warcraft fishing. It listens to your
-game's audio output (WASAPI loopback), recognises the bobber-splash sound with audio fingerprinting, then presses your
+game's audio output (WASAPI loopback) and recognises the bobber-splash sound with audio fingerprinting. Then it presses your
 fishing key to reel in and casts again.
 
+## Contents
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Requirements](#requirements)
+- [Install](#install)
+- [How to use](#how-to-use)
+- [Settings and log files](#settings-and-log-files)
+- [Build from source](#build-from-source)
+- [FAQ / Troubleshooting](#faq--troubleshooting)
+- [Disclaimer](#disclaimer)
+- [License](#license)
+
 ## Features
-- **Audio:** built-in BobberSplash sounds or your own recording (WAV/MP3/FLAC/OGG), with similarity and minimum-volume thresholds and a live meter.
-- **Fishing:** fishing key (default `1`), random reaction and cast-wait timing, and an auto-stop session timer (default 0.25 h, max 168 h).
-- **Buff:** optional timed buff refresh with buff key (default `2`) and rod key (default `3`).
-- **Window:** custom or random window title.
-- **Log:** an activity log, also saved to `%LOCALAPPDATA%\BobberBell\log.txt`.
-- **Hotkeys:** F8 starts and stops; Esc stops. Inputs pause while the game window isn't active.
+- **Sound detection:** audio fingerprinting with a minimum-similarity threshold and a minimum-volume filter, plus live similarity and volume meters with a "peak" readout for calibration.
+- **Built-in sounds:** **BobberSplash** loads three bobber-splash recordings, and any of them counts as a bite. You can also use your own recording (WAV, MP3, FLAC or OGG), and Preview plays the selected sound.
+- **Bite cycle:** a random 0.5–1.5 s reaction, then the fishing key reels in. After a random cast wait (default 1.5–2.5 s) it casts again. If nothing bites within 40 s, it makes a recovery cast.
+- **Auto-stop session:** on by default and set to 0.25 h. The maximum is 168 h, and 0 means no limit, which shows a warning.
+- **Buffs:** optional timed buff refresh (for example a lure) using a buff key and a rod key. It never buffs in the middle of a bite.
+- **Default keys:** fishing **1**, buff **2**, rod **3**. Options include Space, Enter, Tab, Mouse 4/5, 0–9, - and =, A–Z, F1–F12, Left Ctrl, Left Shift and the arrows.
+- **Safety:** Send inputs is always off at launch, so you can test in detection-only mode. Inputs pause when the game window isn't active. **F8** starts or stops and **Esc** stops, from anywhere.
+- **Window name:** custom or random window title.
+- **Log:** the Log tab lists bites, casts, buffs and errors, and also writes them to a log file.
+- **Look:** a navy and gold interface with a subtle glass/metallic finish.
+- **Licensing:** license-gated, with the license bound to the PC.
+
+## Screenshots
+| Audio | Fishing |
+|---|---|
+| ![Audio tab](docs/screenshots/audio.png) | ![Fishing tab](docs/screenshots/fishing.png) |
+| **Buff** | **Window** |
+| ![Buff tab](docs/screenshots/buff.png) | ![Window tab](docs/screenshots/window.png) |
+
+<details><summary>Log tab</summary>
+
+![Log tab](docs/screenshots/log.png)
+</details>
 
 ## Requirements
-- Windows 10/11 (x64)
-- [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) to run; the .NET 10 SDK (or newer) to build
-- A license key (BobberBell asks for it on first launch)
+- Windows 10 or 11, **x64**
+- [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0)
+- A BobberBell license key (asked for on first launch)
 
-## Build
-```
+## Install
+1. Download **BobberBell-1.0.0.zip** from the [v1.0.0 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.0).
+2. Verify the download (optional but recommended). In PowerShell:
+   ```powershell
+   Get-FileHash .\BobberBell-1.0.0.zip -Algorithm SHA256
+   ```
+   The hash must be:
+   ```
+   8754DE4135C197920CA88F06E4EEE66122A687D2FFDB6746E6A6DB8854BA2224
+   ```
+3. Unzip anywhere, for example `C:\Games\BobberBell`, and keep the `Assets` and `Sounds` folders next to `BobberBell.exe`.
+4. Run `BobberBell.exe` and enter your license key.
+
+## How to use
+The same guide is built into the app (**How to use** button).
+
+**1. Prepare the game.** Bind fishing to a single key (game keybinds or your addon). Buffs such as lures need a buff key and a rod key too.
+- BobberBell only presses those keys. It never installs, reads or changes anything in the game.
+- Keep the game's sound effects turned on.
+
+**2. Target sound.** On the Audio tab, choose what BobberBell listens for.
+- BobberSplash is the default. It loads BobberSplash1, BobberSplash2 and BobberSplash3, and any one of them counts as a bite.
+- Custom file uses your own recording instead. Browse loads it (WAV, MP3, FLAC or OGG).
+- The status line shows which sounds are loaded.
+- Preview plays the sound once per press. With BobberSplash, each press plays the next splash. Preview is off while listening.
+- *Tip: a short, clean clip of only the sound works best.*
+
+**3. Audio output.** Select the speakers or headphones the game plays through (the `[Loopback]` entries).
+- BobberBell hears everything on that output, not your microphone.
+- The device is saved by name. If it's missing at startup, you get a warning and the default output is used.
+- Keep the game volume steady and avoid music or videos on the same output.
+
+**4. Minimum similarity.** How closely a sound must resemble the target. It is not a probability.
+- The default is 0.40. Higher is stricter, and lower accepts more sounds.
+- To calibrate, Start in detection-only mode, let a few real bites happen and read "peak" next to Live similarity. Set Minimum similarity a little below the typical peak (about 0.05 to 0.10 lower).
+- If other sounds trigger it, raise it.
+
+**5. Minimum volume.** Filters out quiet or distant sounds.
+- The default is -35 dBFS. -30 needs a louder sound, and -40 accepts a quieter one.
+- Both similarity and volume must pass for a match. Nearby players making the same sound can still match.
+
+**6. Fishing.** On the Fishing tab, choose the fishing key and the cast wait.
+- Start casts once, then listens. On a bite, it waits a random 0.5 to 1.5 s and reels in with the fishing key. After a random cast wait (default 1.5 to 2.5 s), the fishing key casts again.
+- Each listen window lasts 40 s. If no bite is heard, it sends one recovery cast and starts a new window.
+- F8 is reserved for Start and Stop.
+
+**7. Session timer.** Auto-stop ends the session after a set time.
+- Auto-stop is on by default, with **Stop after** set to 0.25 hours. The maximum is 168, and higher values are capped at 168.
+- 0 means no limit and shows a one-time warning.
+- The time left counts down at the right of the status line.
+
+**8. Buffs.** On the Buff tab, renew a buff such as a lure on a timer.
+- Turn on Auto-refresh and set the interval in minutes.
+- When a refresh is due, BobberBell finishes the current catch first. It never buffs in the middle of a bite.
+- The sequence is: buff key, buffing wait, rod key, buffing wait, then the cast.
+- *Also apply on Start* buffs before the first cast.
+
+**9. Start and stop.** Test first with **Send inputs** off (detection only), and watch the live bars and the Log.
+- Send inputs is always off when BobberBell opens. Turn it on when you're ready to automate.
+- After Start you have 4 s to click into the game. The window that's active when the countdown ends becomes the game window.
+- F8 starts or stops and Esc stops, from anywhere, even inside the game.
+- If you leave the game window, inputs pause (the status shows Paused) and resume when you return.
+
+**10. Window name.** On the Window tab, set the name shown in the title bar and taskbar. Random makes a random name, Apply uses it now, and Save settings keeps it.
+
+**11. Log and settings.** The Log tab lists bites, casts, buffs and errors. The Log confirms a key was sent, not that the game accepted it. **Save settings** stores your setup. Settings are not saved automatically on exit.
+
+**12. License.** The License button shows the version and license status. The license is stored for your Windows user, tied to this PC, and checked at launch. Moving to a new PC means entering the code again.
+
+## Settings and log files
+| What | Where |
+|---|---|
+| Settings (written by **Save settings**, loaded at launch) | `%LOCALAPPDATA%\BobberBell\settings.json` |
+| Log | `%LOCALAPPDATA%\BobberBell\log.txt` (the Log tab's **Open folder** button opens it) |
+| License | `%APPDATA%\BobberBell\license.dat` (bound to this PC) |
+
+To reset to defaults, close BobberBell and delete `settings.json`. Data from the pre-release name (WeatherBug) is migrated automatically on first launch.
+
+## Build from source
+Requires the **.NET 10 SDK or newer** on Windows.
+```powershell
+git clone https://github.com/Moosecat313/BobberBell.git
+cd BobberBell
 dotnet build BobberBell.csproj -c Release
+# distribution folder (framework-dependent):
 dotnet publish BobberBell.csproj -c Release -o publish\BobberBell-1.0.0
 ```
+The output is in `bin\Release\` (or the publish folder). Keep the `Assets` and `Sounds` folders next to the exe.
 
-## Libraries
-NAudio (Core, Wasapi, WinMM), SoundFingerprinting and SoundFingerprinting.Audio.NAudio, H.InputSimulator.
+Libraries: NAudio (Core, Wasapi, WinMM), SoundFingerprinting and SoundFingerprinting.Audio.NAudio, and H.InputSimulator.
 
-## Note
-Automating game input may break your game's terms of service. Use at your own risk.
+## FAQ / Troubleshooting
+**The app won't start or says .NET is missing.**
+Install the [.NET 10 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0). The plain .NET Runtime is not enough for a WinForms app.
+
+**It asks for a license key every time, or says the key is invalid.**
+Keys are at least 16 letters and numbers; dashes and spaces are ignored. The license is tied to your PC and Windows user, so a new PC or user needs the key again. If Windows' machine ID can't be read, the key works for that session only.
+
+**It closes right away with "Please close … and start BobberBell again."**
+A debugging or memory tool is running. Close it and start BobberBell again.
+
+**Nothing is detected.**
+Pick the right `[Loopback]` output on the Audio tab and make sure game sound effects are on. Watch Live similarity during a real bite, then set Minimum similarity a little below the peak. Lower Minimum volume (for example -40) if the splash is quiet.
+
+**It triggers on other sounds.**
+Raise Minimum similarity and/or Minimum volume. Avoid music or videos on the same output.
+
+**Keys aren't reaching the game.**
+Make sure **Send inputs** is on and that the game was the active window when the 4-second countdown ended. Inputs pause whenever the game window isn't active. The Log confirms a key was sent, not that the game accepted it.
+
+**The session stopped by itself.**
+That's Auto-stop (0.25 h by default). Change **Stop after** on the Fishing tab. 0 means no limit, which isn't recommended.
+
+**My settings are gone after restarting.**
+Settings are only saved when you press **Save settings**.
+
+## Disclaimer
+BobberBell automates keyboard and mouse input. Automating gameplay may violate the Terms of Service of World of Warcraft or other games and can lead to account penalties, including bans. **You use BobberBell entirely at your own risk.** The author accepts no liability for any consequences of its use. BobberBell is not affiliated with or endorsed by Blizzard Entertainment.
+
+## License
+Copyright © 2026. **All rights reserved.** BobberBell is proprietary software and requires a license key. No permission is granted to copy, modify or redistribute this code or the binaries without the author's written consent.
