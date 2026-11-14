@@ -8,9 +8,14 @@ release/
 
 # Local / private files (never commit)
 screenshots/
+!docs/screenshots/
 FriendCodes.txt
 license.dat*
 settings.json
 log*.txt
 *.pre-*
 *.bak
+
+# Archives and extra private files
+*.zip
+license.dat
