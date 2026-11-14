@@ -1,0 +1,16 @@
+# Build output
+bin/
+obj/
+publish/
+release/
+.vs/
+*.user
+
+# Local / private files (never commit)
+screenshots/
+FriendCodes.txt
+license.dat*
+settings.json
+log*.txt
+*.pre-*
+*.bak
