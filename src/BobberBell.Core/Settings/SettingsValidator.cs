@@ -73,9 +73,9 @@ public static partial class SettingsValidator
         string device = StripControl(raw.AudioDevice ?? string.Empty).Trim();
         s.AudioDevice = device.Length > SettingsLimits.MaxDeviceNameLength ? string.Empty : device;
 
-        s.DetectionMode = raw.DetectionMode is SettingsLimits.DetectionModeVolumeTrigger
-            ? SettingsLimits.DetectionModeVolumeTrigger
-            : SettingsLimits.DetectionModeFingerprint;
+        s.DetectionMode = raw.DetectionMode is SettingsLimits.DetectionModeFingerprint
+            ? SettingsLimits.DetectionModeFingerprint
+            : SettingsLimits.DefaultDetectionMode;
         s.TriggerLevelDb = Math.Clamp(raw.TriggerLevelDb, SettingsLimits.MinVolumeDb, SettingsLimits.MaxVolumeDb);
         s.TriggerMinSeconds = Math.Clamp(raw.TriggerMinSeconds, SettingsLimits.MinTriggerSeconds, SettingsLimits.MaxTriggerSeconds);
         s.TriggerIgnoreSeconds = Math.Clamp(raw.TriggerIgnoreSeconds, 0m, SettingsLimits.MaxTriggerIgnoreSeconds);

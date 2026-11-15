@@ -12,7 +12,7 @@
 
 #define AppName "BobberBell"
 #ifndef AppVersion
-  #define AppVersion "1.0.5"
+  #define AppVersion "1.0.6"
 #endif
 #define AppPublisher "Chris Monoxide"
 #define AppExeName "BobberBell.exe"

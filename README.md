@@ -13,7 +13,7 @@ Listens for a specific sound, then pushes a specified button, hands-free.</p>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.5">Download v1.0.5</a> ·
+  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.6">Download v1.0.6</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#security">Security</a> ·
   <a href="#how-to-use">How to use</a> ·
@@ -127,16 +127,16 @@ A short summary; details are in [SECURITY.md](SECURITY.md) and the STRIDE threat
 
 ## Requirements
 - Windows 10 or 11, **x64**
-- The release zip (`BobberBell-1.0.5.zip`): the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
+- The release zip (`BobberBell-1.0.6.zip`): the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
 - A BobberBell license key (asked for on first launch), or use the 5-minute trial first
 
 ## Install
-1. Download **BobberBell-1.0.5.zip** from the [v1.0.5 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.5).
+1. Download **BobberBell-1.0.6.zip** from the [v1.0.6 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.6).
 2. Verify the download (optional but recommended). In PowerShell:
    ```powershell
-   Get-FileHash .\BobberBell-1.0.5.zip -Algorithm SHA256
+   Get-FileHash .\BobberBell-1.0.6.zip -Algorithm SHA256
    ```
-   It must match the SHA-256 listed for that file in the [release notes](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.5).
+   It must match the SHA-256 listed for that file in the [release notes](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.6).
 3. Unzip anywhere, for example `C:\Games\BobberBell`, and keep the `Assets` and `Sounds` folders next to `BobberBell.exe`.
 4. Run `BobberBell.exe` and enter your license key, or choose **Start trial** to try it first (5 minutes of total running time per PC).
 
@@ -170,8 +170,8 @@ The same guide is built into the app (**How to use** button).
 - The default is -35 dBFS. -30 needs a louder sound, and -40 accepts a quieter one.
 - Both similarity and volume must pass for a match. Nearby players making the same sound can still match.
 
-**5a. Detection mode.** On the Audio tab, *Fingerprint* (the default) matches the splash against the target sound. *Volume trigger* treats a loud, low-pitched sound lasting a moment after the cast as a bite.
-- Use Volume trigger when real bites never match, for example on private servers whose splash sound differs or varies between bites.
+**5a. Detection mode.** On the Audio tab, *Volume trigger* (the recommended default) treats a loud, low-pitched sound lasting a moment after the cast as a bite. *Fingerprint* matches the splash against the target sound; it is for standard servers and needs Minimum similarity tuning.
+- Fingerprint does not work when the splash differs or varies between bites (for example on private servers); stay on Volume trigger there.
 - Defaults: Trigger level -38 dBFS, Min. sound length 0.6 s, Ignore after cast 2.5 s, Splash tone filter on (spectral centroid 300-3200 Hz; the cast sound is brighter). Turn game music and ambience off.
 - Test in detection-only mode first. Ignored sounds are logged with their length, level and tone so you can tune the values.
 
@@ -246,7 +246,7 @@ The trial is 5 minutes of total running time per PC and doesn't reset. It isn't 
 A debugging or memory tool is running. Close it and start BobberBell again.
 
 **Nothing is detected.**
-If the Log only shows "No bite in 40 s" and Live similarity never moves during real bites, the server's splash probably differs from the reference sounds: switch Detection mode to **Volume trigger**. Otherwise: Pick the right `[Loopback]` output on the Audio tab and make sure game sound effects are on. Watch Live similarity during a real bite, then set Minimum similarity a little below the peak. Lower Minimum volume (for example -40) if the splash is quiet.
+If the Log only shows "No bite in 40 s" and Live similarity never moves during real bites, the server's splash probably differs from the reference sounds: switch Detection mode back to **Volume trigger** (the default). Otherwise: Pick the right `[Loopback]` output on the Audio tab and make sure game sound effects are on. Watch Live similarity during a real bite, then set Minimum similarity a little below the peak. Lower Minimum volume (for example -40) if the splash is quiet.
 
 **It triggers on other sounds.**
 Raise Minimum similarity and/or Minimum volume. Avoid music or videos on the same output.

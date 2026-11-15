@@ -12,9 +12,9 @@ public sealed class DetectionModeSettingsTests : System.IDisposable
 
     private SettingsStore Store() => new(dir.File("settings.json"), p => SoundFileCheck.Fail("file not found", notFound: true));
 
-    // A v1.0.3 settings.json (no detection-mode keys) loads unchanged, in Fingerprint mode with trigger defaults.
+    // A v1.0.3 settings.json (no detection-mode keys) loads unchanged, in the default Volume trigger mode with trigger defaults.
     [Fact]
-    public void OldSettingsFile_LoadsUnchanged_InFingerprintMode()
+    public void OldSettingsFile_LoadsUnchanged_InVolumeTriggerMode()
     {
         File.WriteAllText(dir.File("settings.json"),
             "{\"SelectedKey\":\"1\",\"Similarity\":0.40,\"MinVolume\":-35,\"WindowName\":\"BobberBell - v1.0.3\",\"LastSoundPath\":\"\"," +
@@ -24,7 +24,7 @@ public sealed class DetectionModeSettingsTests : System.IDisposable
         var r = Store().Load();
         Assert.Equal(SettingsLoadStatus.Loaded, r.Status);
         var s = r.Validation!.Settings;
-        Assert.Equal(SettingsLimits.DetectionModeFingerprint, s.DetectionMode);
+        Assert.Equal(SettingsLimits.DetectionModeVolumeTrigger, s.DetectionMode);
         Assert.Equal(0.40m, s.Similarity);
         Assert.Equal(-35m, s.MinVolume);
         Assert.Equal("Headset Earphone (Alienware AW520H)", s.AudioDevice);
@@ -60,9 +60,17 @@ public sealed class DetectionModeSettingsTests : System.IDisposable
     [InlineData("volumetrigger")]
     [InlineData("Other")]
     [InlineData("")]
-    public void UnknownMode_FallsBackToFingerprint(string mode)
+    public void UnknownMode_FallsBackToVolumeTrigger(string mode)
     {
         var s = SettingsValidator.Validate(new AppSettings { DetectionMode = mode }, p => SoundFileCheck.Fail("x", notFound: true)).Settings;
+        Assert.Equal(SettingsLimits.DetectionModeVolumeTrigger, s.DetectionMode);
+    }
+
+    [Fact]
+    public void Defaults_AreVolumeTrigger_AndExplicitFingerprintIsKept()
+    {
+        Assert.Equal(SettingsLimits.DetectionModeVolumeTrigger, new AppSettings().DetectionMode);
+        var s = SettingsValidator.Validate(new AppSettings { DetectionMode = SettingsLimits.DetectionModeFingerprint }, p => SoundFileCheck.Fail("x", notFound: true)).Settings;
         Assert.Equal(SettingsLimits.DetectionModeFingerprint, s.DetectionMode);
     }
 

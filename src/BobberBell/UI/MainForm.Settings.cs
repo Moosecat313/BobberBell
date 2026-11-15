@@ -102,7 +102,7 @@ internal sealed partial class MainForm
         nudBuffWait.Value = settings.BuffWaitSeconds;
         chkBuffEnabled.Checked = settings.BuffEnabled;
         chkBuffOnStart.Checked = settings.BuffOnStart;
-        comboDetectionMode.SelectedIndex = settings.DetectionMode == SettingsLimits.DetectionModeVolumeTrigger ? 1 : 0;
+        comboDetectionMode.SelectedIndex = settings.DetectionMode == SettingsLimits.DetectionModeFingerprint ? 1 : 0;
         nudTriggerLevel.Value = settings.TriggerLevelDb;
         nudTriggerSeconds.Value = settings.TriggerMinSeconds;
         nudTriggerIgnore.Value = settings.TriggerIgnoreSeconds;

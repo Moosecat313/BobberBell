@@ -65,8 +65,8 @@ internal sealed partial class MainForm : Form
     private CheckBox chkToneFilter = null!;
     private Label lblModeHint = null!;
     private decimal triggerMinToneHz = SettingsLimits.DefaultTriggerMinToneHz, triggerMaxToneHz = SettingsLimits.DefaultTriggerMaxToneHz;
-    private const string ModeFingerprintText = "Fingerprint: match the splash sound (default)";
-    private const string ModeVolumeTriggerText = "Volume trigger: loud low splash after the cast";
+    private const string ModeFingerprintText = "Fingerprint: match the splash sound (needs similarity tuning)";
+    private const string ModeVolumeTriggerText = "Volume trigger: loud low splash after the cast (default)";
     private CheckBox chkSendInputs = null!, chkAutoStop = null!, chkBuffEnabled = null!, chkBuffOnStart = null!;
     private Button btnBrowse = null!, btnStart = null!, btnStop = null!, btnSave = null!, btnRandomName = null!, btnApplyName = null!, btnLicense = null!;
     private Button tabAudio = null!, tabFishing = null!, tabBuff = null!, tabWindow = null!, tabLog = null!;

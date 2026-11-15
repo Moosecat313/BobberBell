@@ -348,13 +348,13 @@ internal sealed partial class MainForm
         var tips = new ToolTip { AutoPopDelay = 15000 };
         AddMutedLabel(p, "Detection mode", 24, top);
         comboDetectionMode = MakeDarkCombo(24, top + 22, 440);
-        comboDetectionMode.Items.AddRange(new object[] { ModeFingerprintText, ModeVolumeTriggerText });
+        comboDetectionMode.Items.AddRange(new object[] { ModeVolumeTriggerText, ModeFingerprintText });
         comboDetectionMode.SelectedIndex = 0;
         comboDetectionMode.SelectedIndexChanged += (s, e) => UpdateDetectionModeControls();
         tips.SetToolTip(comboDetectionMode,
-            "Fingerprint (default): a bite is the splash matching the target sound above.\n" +
-            "Volume trigger: a bite is a loud, low-pitched sound lasting a moment, after the cast.\n" +
-            "Use Volume trigger when the splash never matches, e.g. on private servers whose splash differs or varies.");
+            "Volume trigger (recommended default): a bite is a loud, low-pitched sound lasting a moment, after the cast.\n" +
+            "Fingerprint: a bite is the splash matching the target sound above. For standard servers;\n" +
+            "needs Minimum similarity tuning and does not work where the splash differs or varies.");
         p.Controls.Add(comboDetectionMode);
 
         AddMutedLabel(p, "Trigger level (dBFS)", 24, top + 66);
@@ -394,7 +394,7 @@ internal sealed partial class MainForm
         UpdateDetectionModeControls();
     }
 
-    private bool VolumeTriggerMode => comboDetectionMode.SelectedIndex == 1;
+    private bool VolumeTriggerMode => comboDetectionMode.SelectedIndex == 0;
 
     private void UpdateDetectionModeControls()
     {
@@ -403,7 +403,7 @@ internal sealed partial class MainForm
         nudSimilarity.Enabled = !trigger;
         lblModeHint.Text = trigger
             ? "Volume trigger: turn game music and ambience off. Test in detection-only mode first; ignored sounds are listed in the log with their length and tone."
-            : "Fingerprint: the target sound and Minimum similarity above decide what is a bite. Switch to Volume trigger if real bites never match.";
+            : "Fingerprint: the target sound and Minimum similarity above decide what is a bite. Tune Minimum similarity against real bites; use Volume trigger (default) if they never match.";
     }
 
     private Panel NewPage()

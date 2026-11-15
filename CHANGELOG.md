@@ -2,6 +2,11 @@
 
 All notable changes to BobberBell are documented here.
 
+## [1.0.6] - 2026-11-15
+
+### Changed
+- **Volume trigger is now the default detection mode** and is listed first. Fingerprint stays available for standard servers and needs Minimum similarity tuning. Settings files that already name a detection mode keep it; files without one (or with an unknown value) use Volume trigger.
+
 ## [1.0.5] - 2026-11-15
 
 ### Fixed
@@ -92,6 +97,7 @@ First release.
 - .NET 10 (`net10.0-windows`), WinForms.
 - NAudio.Core, NAudio.Wasapi and NAudio.WinMM 2.2.1; SoundFingerprinting 17.4.0 with SoundFingerprinting.Audio.NAudio 8.0.0; H.InputSimulator 1.5.0.
 
+[1.0.6]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.6
 [1.0.5]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.5
 [1.0.4]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.4
 [1.0.3]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.3

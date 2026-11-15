@@ -58,7 +58,7 @@ public sealed class AppSettings
     /// <summary>Gets or sets a value indicating whether a buff is applied before the first cast.</summary>
     public bool BuffOnStart { get; set; }
 
-    /// <summary>Gets or sets the detection mode: "Fingerprint" (default) or "VolumeTrigger".</summary>
+    /// <summary>Gets or sets the detection mode: "VolumeTrigger" (default) or "Fingerprint".</summary>
     public string DetectionMode { get; set; } = SettingsLimits.DefaultDetectionMode;
 
     /// <summary>Gets or sets the volume-trigger level in dBFS (-80 to 0).</summary>

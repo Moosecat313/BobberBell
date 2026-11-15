@@ -4,7 +4,7 @@ namespace BobberBell.Core.Settings;
 public static class SettingsLimits
 {
     /// <summary>Display version used in titles.</summary>
-    public const string AppVersion = "1.0.5";
+    public const string AppVersion = "1.0.6";
 
     /// <summary>Default window title.</summary>
     public const string DefaultWindowName = "BobberBell - v" + AppVersion;
@@ -66,14 +66,14 @@ public static class SettingsLimits
     /// <summary>Largest settings file accepted, in bytes.</summary>
     public const int MaxSettingsFileBytes = 64 * 1024;
 
-    /// <summary>Detection mode: fingerprint matching (default).</summary>
+    /// <summary>Detection mode: fingerprint matching.</summary>
     public const string DetectionModeFingerprint = "Fingerprint";
 
-    /// <summary>Detection mode: volume trigger.</summary>
+    /// <summary>Detection mode: volume trigger (default).</summary>
     public const string DetectionModeVolumeTrigger = "VolumeTrigger";
 
     /// <summary>Default detection mode.</summary>
-    public const string DefaultDetectionMode = DetectionModeFingerprint;
+    public const string DefaultDetectionMode = DetectionModeVolumeTrigger;
 
     /// <summary>Default volume-trigger level (dBFS).</summary>
     public const decimal DefaultTriggerLevelDb = -38m;
