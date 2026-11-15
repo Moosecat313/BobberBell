@@ -2,6 +2,11 @@
 
 All notable changes to BobberBell are documented here.
 
+## [1.0.5] - 2026-11-15
+
+### Fixed
+- Dropdown lists (for example Detection mode) opened one row tall, so *Volume trigger* could only be picked with the arrow keys. The lists now open tall enough to show all their entries.
+
 ## [1.0.4] - 2026-11-15
 
 ### Added
@@ -86,6 +91,7 @@ First release.
 - .NET 10 (`net10.0-windows`), WinForms.
 - NAudio.Core, NAudio.Wasapi and NAudio.WinMM 2.2.1; SoundFingerprinting 17.4.0 with SoundFingerprinting.Audio.NAudio 8.0.0; H.InputSimulator 1.5.0.
 
+[1.0.5]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.5
 [1.0.4]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.4
 [1.0.3]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.3
 [1.0.2]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2

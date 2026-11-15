@@ -773,6 +773,9 @@ internal sealed partial class MainForm
             MaxDropDownItems = 14
         };
         cb.MeasureItem += (s, e) => e.ItemHeight = 22; // dropdown rows
+        // Owner-draw-variable lists can open one row tall; size the list to its items each time it opens.
+        cb.IntegralHeight = false;
+        cb.DropDown += (s, e) => cb.DropDownHeight = (Math.Clamp(cb.Items.Count, 1, cb.MaxDropDownItems) * 22) + 4;
         cb.DrawItem += (s, e) =>
         {
             if (e.Index < 0) return;

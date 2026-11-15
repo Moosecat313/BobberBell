@@ -13,7 +13,7 @@ Listens for a specific sound, then pushes a specified button, hands-free.</p>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.4">Download v1.0.4</a> ·
+  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.5">Download v1.0.5</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#security">Security</a> ·
   <a href="#how-to-use">How to use</a> ·
@@ -127,16 +127,16 @@ A short summary; details are in [SECURITY.md](SECURITY.md) and the STRIDE threat
 
 ## Requirements
 - Windows 10 or 11, **x64**
-- The release zip (`BobberBell-1.0.4.zip`): the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
+- The release zip (`BobberBell-1.0.5.zip`): the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
 - A BobberBell license key (asked for on first launch), or use the 5-minute trial first
 
 ## Install
-1. Download **BobberBell-1.0.4.zip** from the [v1.0.4 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.4).
+1. Download **BobberBell-1.0.5.zip** from the [v1.0.5 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.5).
 2. Verify the download (optional but recommended). In PowerShell:
    ```powershell
-   Get-FileHash .\BobberBell-1.0.4.zip -Algorithm SHA256
+   Get-FileHash .\BobberBell-1.0.5.zip -Algorithm SHA256
    ```
-   It must match the SHA-256 listed for that file in the [release notes](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.4).
+   It must match the SHA-256 listed for that file in the [release notes](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.5).
 3. Unzip anywhere, for example `C:\Games\BobberBell`, and keep the `Assets` and `Sounds` folders next to `BobberBell.exe`.
 4. Run `BobberBell.exe` and enter your license key, or choose **Start trial** to try it first (5 minutes of total running time per PC).
 
