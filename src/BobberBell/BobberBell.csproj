@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ApplicationIcon>Assets\BobberBell.ico</ApplicationIcon>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>BobberBell</RootNamespace>
+    <AssemblyName>BobberBell</AssemblyName>
+    <AssemblyTitle>BobberBell</AssemblyTitle>
+    <Description>Audio-triggered input automation</Description>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <!-- Restore (and the lock file) also cover the self-contained win-x64 publish. -->
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <!-- Windows-only app: platform-compatibility analysis adds nothing here. -->
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+  <!-- Release: no .pdb, no XML docs in the output, no embedded build paths -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+    <CopyDocumentationFilesFromPackages>false</CopyDocumentationFilesFromPackages>
+    <CopyDebugSymbolFilesFromPackages>false</CopyDebugSymbolFilesFromPackages>
+    <PublishDocumentationFile>false</PublishDocumentationFile>
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
+    <GenerateDependencyFile>true</GenerateDependencyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="packages\**" />
+    <None Remove="packages\**" />
+    <None Remove="FriendCodes.txt" />
+    <!-- Loaded from disk by path, so they stay loose next to the exe (also in the single-file publish). -->
+    <Content Include="Sounds\*.wav;Assets\BobberBell.ico;Assets\BobberBell_emblem_256.png;Assets\BobberBell_logo_blend.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.InteropServices.ComVisibleAttribute">
+      <_Parameter1>false</_Parameter1>
+      <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BobberBell.Core\BobberBell.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="H.InputSimulator" Version="1.5.0" />
+    <!-- NAudio: only Core, Wasapi (loopback capture, MediaFoundation) and WinMM (WaveOutEvent preview) are used. -->
+    <PackageReference Include="NAudio.Core" Version="2.2.1" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+    <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
+    <!-- SoundFingerprinting.Audio.NAudio still declares the NAudio meta-package; ship none of its extra assemblies
+         (NAudio.dll, Asio, Midi, WinForms). The app never touches the code paths that would need them. -->
+    <PackageReference Include="NAudio" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="NAudio.Asio" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="NAudio.Midi" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="NAudio.WinForms" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SoundFingerprinting" Version="17.4.0" />
+    <PackageReference Include="SoundFingerprinting.Audio.NAudio" Version="8.0.0" />
+  </ItemGroup>
+</Project>

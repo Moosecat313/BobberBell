@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main, portfolio]
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege: the workflow only reads the repo.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+
+jobs:
+  secret-scan:
+    name: Secret scan (gitleaks, full history)
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: "8.30.1"
+      GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks (checksum-verified)
+        run: |
+          curl -sSfL -o gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tgz" | sha256sum --check --strict
+          tar -xzf gitleaks.tgz gitleaks
+      - name: Scan every commit (findings are redacted in the log)
+        run: ./gitleaks git --redact --no-banner --exit-code 1 --log-opts="--all" .
+
+  build-test:
+    name: Build, test, package (windows-latest, .NET 10)
+    runs-on: windows-latest
+    env:
+      # Optional code signing. Inert until both repository secrets exist (see docs/RELEASING.md).
+      SIGN_CERT_PFX_BASE64: ${{ secrets.SIGN_CERT_PFX_BASE64 }}
+      SIGN_CERT_PASSWORD: ${{ secrets.SIGN_CERT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+
+      - name: Restore (locked)
+        run: dotnet restore BobberBell.slnx --locked-mode
+
+      - name: Build (Release, warnings are errors)
+        run: dotnet build BobberBell.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test --solution BobberBell.slnx -c Release --no-build
+
+      - name: Dependency audit (fail on any known vulnerability, incl. transitive)
+        shell: pwsh
+        run: |
+          $out = dotnet list BobberBell.slnx package --vulnerable --include-transitive 2>&1 | Out-String
+          Write-Output $out
+          if ($out -match 'has the following vulnerable packages') { Write-Error 'Vulnerable packages found'; exit 1 }
+
+      - name: Publish (self-contained, single file, win-x64)
+        run: dotnet publish src/BobberBell/BobberBell.csproj -c Release -p:PublishProfile=win-x64-singlefile
+
+      - name: Sign exe (optional)
+        if: env.SIGN_CERT_PFX_BASE64 != '' && env.SIGN_CERT_PASSWORD != ''
+        shell: pwsh
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP 'sign.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:SIGN_CERT_PFX_BASE64))
+          try {
+            $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+            & $signtool.FullName sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f $pfx /p $env:SIGN_CERT_PASSWORD artifacts\publish\win-x64\BobberBell.exe
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } finally { Remove-Item $pfx -Force }
+
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\BobberBell.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Zip portable build and write checksums
+        shell: pwsh
+        run: |
+          Compress-Archive -Path artifacts\publish\win-x64\* -DestinationPath artifacts\BobberBell-win-x64-portable.zip -Force
+          $files = @('artifacts\BobberBell-win-x64-portable.zip') + (Get-ChildItem artifacts\installer\*.exe | ForEach-Object FullName)
+          Get-FileHash -Algorithm SHA256 $files | ForEach-Object { "$($_.Hash)  $(Split-Path $_.Path -Leaf)" } | Set-Content artifacts\SHA256SUMS.txt
+          Get-Content artifacts\SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: BobberBell-win-x64
+          path: |
+            artifacts/BobberBell-win-x64-portable.zip
+            artifacts/installer/*.exe
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14

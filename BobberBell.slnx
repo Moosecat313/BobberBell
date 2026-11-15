@@ -1,3 +1,9 @@
 <Solution>
-  <Project Path="BobberBell.csproj" Id="c8fa83b9-2781-464c-9fab-668de70f496d" />
+  <Folder Name="/src/">
+    <Project Path="src/BobberBell/BobberBell.csproj" Id="c8fa83b9-2781-464c-9fab-668de70f496d" />
+    <Project Path="src/BobberBell.Core/BobberBell.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BobberBell.Tests/BobberBell.Tests.csproj" />
+  </Folder>
 </Solution>

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Test method names use underscores; test classes need no XML docs. -->
+    <NoWarn>$(NoWarn);CA1707;CA1515;CS1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="4.0.3" />
+    <PackageReference Include="SoundFingerprinting" Version="17.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\BobberBell\Sounds\*.wav" Link="Sounds\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BobberBell.Core\BobberBell.Core.csproj" />
+  </ItemGroup>
+</Project>
