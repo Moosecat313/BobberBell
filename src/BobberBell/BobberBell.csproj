@@ -50,15 +50,15 @@
   <ItemGroup>
     <PackageReference Include="H.InputSimulator" Version="1.5.0" />
     <!-- NAudio: only Core, Wasapi (loopback capture, MediaFoundation) and WinMM (WaveOutEvent preview) are used. -->
-    <PackageReference Include="NAudio.Core" Version="2.2.1" />
-    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
-    <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
+    <PackageReference Include="NAudio.Core" Version="2.4.0" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.4.0" />
+    <PackageReference Include="NAudio.WinMM" Version="2.4.0" />
     <!-- SoundFingerprinting.Audio.NAudio still declares the NAudio meta-package; ship none of its extra assemblies
          (NAudio.dll, Asio, Midi, WinForms). The app never touches the code paths that would need them. -->
     <PackageReference Include="NAudio" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="NAudio.Asio" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="NAudio.Midi" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="NAudio.WinForms" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="NAudio.Asio" Version="2.4.0" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="NAudio.Midi" Version="2.4.0" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="NAudio.WinForms" Version="2.4.0" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="SoundFingerprinting" Version="17.4.0" />
     <PackageReference Include="SoundFingerprinting.Audio.NAudio" Version="8.0.0" />
   </ItemGroup>
