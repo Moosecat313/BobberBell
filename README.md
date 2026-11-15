@@ -1,31 +1,46 @@
 <p align="center">
-  <img src="Assets/BobberBell_logo_blend.png" alt="BobberBell" width="480">
+  <img src="src/BobberBell/Assets/BobberBell_logo_blend.png" alt="BobberBell" width="480">
 </p>
 
-<h1 align="center">BobberBell 1.0</h1>
+<h1 align="center">BobberBell</h1>
 
-<p align="center"><b>Listens for a specific sound, then pushes a specified button, hands-free.</b></p>
+<p align="center"><b>Audio-triggered input automation for Windows.</b><br>
+Listens for a specific sound, then pushes a specified button, hands-free.</p>
+
+<p align="center">
+  <a href="https://github.com/Moosecat313/BobberBell/actions/workflows/ci.yml"><img src="https://github.com/Moosecat313/BobberBell/actions/workflows/ci.yml/badge.svg?branch=portfolio" alt="CI"></a>
+  <a href="https://github.com/Moosecat313/BobberBell/actions/workflows/codeql.yml"><img src="https://github.com/Moosecat313/BobberBell/actions/workflows/codeql.yml/badge.svg?branch=portfolio" alt="CodeQL"></a>
+</p>
 
 <p align="center">
   <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.0">Download v1.0.0</a> ·
-  <a href="#install">Install</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#security">Security</a> ·
   <a href="#how-to-use">How to use</a> ·
-  <a href="#faq--troubleshooting">FAQ</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
-BobberBell is a small Windows desktop app (C# / WinForms, .NET 10) built for World of Warcraft fishing. It listens to your
-game's audio output (WASAPI loopback) and recognises the bobber-splash sound with audio fingerprinting. Then it presses your
-fishing key to reel in and casts again.
+BobberBell is a small Windows desktop app (C# / WinForms, .NET 10). It listens to an audio output device (WASAPI loopback),
+recognises a reference sound with audio fingerprinting, and answers with a key press or mouse click. The pipeline is generic:
+any short, distinctive sound can trigger any allow-listed key.
+
+**Flagship example: World of Warcraft fishing.** BobberBell hears the bobber splash, presses the fishing key to reel in, and
+casts again, with randomized timing, a session time limit and timed buffs.
+
+<p align="center"><img src="docs/demo.gif" alt="Starting a session in detection-only mode" width="584"></p>
+<p align="center"><sub>Starting a session in detection-only mode: 4-second focus countdown, then listening with the auto-stop timer running.</sub></p>
 
 ## Contents
 - [Features](#features)
+- [Architecture](#architecture)
+- [Design decisions](#design-decisions)
+- [Security](#security)
 - [Screenshots](#screenshots)
 - [Requirements](#requirements)
 - [Install](#install)
 - [How to use](#how-to-use)
 - [Settings and log files](#settings-and-log-files)
-- [Build from source](#build-from-source)
+- [Build, test and package](#build-test-and-package)
 - [FAQ / Troubleshooting](#faq--troubleshooting)
 - [Disclaimer](#disclaimer)
 - [License](#license)
@@ -41,7 +56,57 @@ fishing key to reel in and casts again.
 - **Window name:** custom or random window title.
 - **Log:** the Log tab lists bites, casts, buffs and errors, and also writes them to a log file.
 - **Look:** a navy and gold interface with a subtle glass/metallic finish.
-- **Licensing:** license-gated, with the license bound to the PC.
+- **Licensing:** license-gated, with the license bound to the PC (offline; codes are stored only as salted PBKDF2 hashes).
+
+## Architecture
+```mermaid
+flowchart LR
+    subgraph Capture["Audio capture (Services)"]
+        A[WASAPI loopback<br/>selected output device] --> B[Float samples<br/>per chunk]
+        B --> C{Peak dBFS ≥<br/>minimum volume?}
+    end
+    subgraph Match["Fingerprint match"]
+        C -- yes --> D[SoundFingerprinting<br/>realtime query]
+        R[(In-memory index of<br/>reference sounds)] --> D
+        D --> E{Confidence ≥<br/>minimum similarity?}
+    end
+    subgraph Act["Session + input"]
+        E -- bite --> F[Session loop<br/>random reaction delay]
+        F --> G{Send inputs on and<br/>game window active?}
+        G -- yes --> H[SendInput<br/>scan code, 40–90 ms hold]
+        H --> I[Cast wait → cast → listen again]
+    end
+    C -- no --> X[drop chunk]
+    E -- no --> M[update live meter only]
+```
+
+The solution is split so that everything that can be tested without Windows, audio hardware or a UI is:
+
+| Project | Target | Contents |
+|---|---|---|
+| `src/BobberBell.Core` | `net10.0` (any OS) | Settings model, validator and JSON store; license service; session timer and buff schedule; detection thresholds; key allow-list; sound-file path validator; redacting file logger. |
+| `src/BobberBell` | `net10.0-windows` | WinForms UI (`UI/MainForm.*.cs` partials, `UI/Controls/*`), Windows services behind interfaces (`IAudioDetector` → `LoopbackFingerprintDetector`, `IInputSender` → `WindowsInputSender`, `IMachineIdProvider` → `RegistryMachineIdProvider`, `GlobalHotkeyHook`), and all P/Invoke in `Interop/NativeMethods.cs`. |
+| `tests/BobberBell.Tests` | `net10.0` | xUnit v3 tests for Core, plus an end-to-end fingerprint match on the bundled sounds. |
+
+## Design decisions
+- **Fingerprinting, not waveform matching.** Spectral fingerprints tolerate volume changes, mixing with other game audio and slight pitch/timing drift. A cheap per-chunk loudness gate runs first, so quiet chunks never reach the matcher.
+- **Loopback, not microphone.** Capturing the output device hears exactly what the game renders, without room noise or a mic permission.
+- **Safe by default.** *Send inputs* is never persisted and is off at every launch; the app only sends keys while the window that had focus at the end of the countdown is still active; the session auto-stops after 0.25 h by default, and settings files cannot raise it above 168 h or silently disable it.
+- **Allow-listed inputs.** Every bindable key comes from one catalog (`KeyCatalog`); settings that name anything else fall back to the defaults.
+- **Monotonic time.** Session and buff deadlines use `Environment.TickCount64`, so changing the clock can't extend or end a session.
+- **One logger.** All activity goes through `IAppLogger`, which redacts user-profile paths before anything is written or shown. Message boxes are reserved for things the user must act on.
+- **Pure core, thin UI.** Logic that decides anything (clamping, thresholds, timing, licensing) lives in `BobberBell.Core` and is unit-tested on Linux and Windows; the WinForms layer only moves values between controls and services.
+- **Behaviour-preserving refactor.** The portfolio refactor kept every user-visible string, default and layout; screenshots of every tab before and after are pixel-identical inside the window (apart from log timestamps).
+
+## Security
+A short summary; details are in [SECURITY.md](SECURITY.md) and the STRIDE threat model in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
+
+- **Untrusted inputs are validated:** `settings.json` is size-capped (64 KB), parsed with a strict source-generated contract (no comments, trailing commas, duplicate keys or string-typed numbers; max depth 8) and every value is clamped or allow-listed. Sound files must be WAV/MP3/FLAC/OGG, at most 50 MB, local (no UNC paths, which could leak NTLM credentials, no device paths or alternate data streams), and library sounds must resolve inside the app's `Sounds` folder.
+- **Licensing:** codes never appear in the binary or on disk, only salted PBKDF2-SHA256 hashes (200,000 iterations); comparisons are constant-time (`CryptographicOperations.FixedTimeEquals`); `license.dat` is bound to the PC with HMAC-SHA256 over the Windows MachineGuid and is never written unbound.
+- **Privacy:** audio is processed in memory only; nothing is recorded, uploaded or sent over the network (the app makes no network calls). Logs redact profile paths.
+- **Native code hygiene:** all P/Invoke resolves from System32 only (DLL-planting defence); the keyboard hook is read-only and ignores injected keys.
+- **Supply chain:** NuGet lock files with locked-mode restore in CI, NuGet audit plus a `dotnet list package --vulnerable` gate, Dependabot for NuGet and Actions, all Actions pinned to commit SHAs, least-privilege workflow tokens, gitleaks over the full git history, and CodeQL (`security-extended`).
+- **Build hygiene:** nullable reference types, .NET analyzers at `latest` with all security rules, warnings as errors, deterministic builds (`PathMap`, `ContinuousIntegrationBuild`).
 
 ## Screenshots
 | Audio | Fishing |
@@ -57,7 +122,7 @@ fishing key to reel in and casts again.
 
 ## Requirements
 - Windows 10 or 11, **x64**
-- [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0)
+- v1.0.0 zip: the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
 - A BobberBell license key (asked for on first launch)
 
 ## Install
@@ -72,6 +137,8 @@ fishing key to reel in and casts again.
    ```
 3. Unzip anywhere, for example `C:\Games\BobberBell`, and keep the `Assets` and `Sounds` folders next to `BobberBell.exe`.
 4. Run `BobberBell.exe` and enter your license key.
+
+Builds from CI (`BobberBell-win-x64` artifact) contain a portable self-contained zip, a per-user installer (no admin rights) and `SHA256SUMS.txt`.
 
 ## How to use
 The same guide is built into the app (**How to use** button).
@@ -138,22 +205,28 @@ The same guide is built into the app (**How to use** button).
 
 To reset to defaults, close BobberBell and delete `settings.json`. Data from the pre-release name (WeatherBug) is migrated automatically on first launch.
 
-## Build from source
-Requires the **.NET 10 SDK or newer** on Windows.
+## Build, test and package
+Requires the **.NET 10 SDK or newer**. The app builds on Windows; Core and the tests also build and run on Linux and macOS.
 ```powershell
 git clone https://github.com/Moosecat313/BobberBell.git
 cd BobberBell
-dotnet build BobberBell.csproj -c Release
-# distribution folder (framework-dependent):
-dotnet publish BobberBell.csproj -c Release -o publish\BobberBell-1.0.0
+dotnet restore BobberBell.slnx --locked-mode
+dotnet build BobberBell.slnx -c Release          # warnings are errors
+dotnet test --solution BobberBell.slnx -c Release
+# self-contained single-file exe (no .NET runtime needed) in artifacts\publish\win-x64\
+dotnet publish src\BobberBell -c Release -p:PublishProfile=win-x64-singlefile
+# optional installer (Inno Setup 6): artifacts\installer\BobberBell-1.0.0-setup.exe
+iscc installer\BobberBell.iss
 ```
-The output is in `bin\Release\` (or the publish folder). Keep the `Assets` and `Sounds` folders next to the exe.
+On Linux, add `-p:EnableWindowsTargeting=true` to build the Windows project. Releasing and the optional code-signing step are described in [docs/RELEASING.md](docs/RELEASING.md).
 
-Libraries: NAudio (Core, Wasapi, WinMM), SoundFingerprinting and SoundFingerprinting.Audio.NAudio, and H.InputSimulator.
+**CI** ([`ci.yml`](.github/workflows/ci.yml), `windows-latest`): gitleaks history scan, locked restore, Release build, tests, vulnerable-package gate, self-contained publish, Inno Setup installer, artifacts with SHA-256 sums. **CodeQL** ([`codeql.yml`](.github/workflows/codeql.yml)): C# `security-extended`, on every push and weekly.
+
+Libraries: NAudio (Core, Wasapi, WinMM), SoundFingerprinting and SoundFingerprinting.Audio.NAudio, H.InputSimulator; xUnit v3 for tests.
 
 ## FAQ / Troubleshooting
 **The app won't start or says .NET is missing.**
-Install the [.NET 10 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0). The plain .NET Runtime is not enough for a WinForms app.
+The v1.0.0 zip is framework-dependent: install the [.NET 10 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0) (the plain .NET Runtime is not enough for a WinForms app). The self-contained build and installer from CI need no runtime.
 
 **It asks for a license key every time, or says the key is invalid.**
 Keys are at least 16 letters and numbers; dashes and spaces are ignored. The license is tied to your PC and Windows user, so a new PC or user needs the key again. If Windows' machine ID can't be read, the key works for that session only.
@@ -180,4 +253,4 @@ Settings are only saved when you press **Save settings**.
 BobberBell automates keyboard and mouse input. Automating gameplay may violate the Terms of Service of World of Warcraft or other games and can lead to account penalties, including bans. **You use BobberBell entirely at your own risk.** The author accepts no liability for any consequences of its use. BobberBell is not affiliated with or endorsed by Blizzard Entertainment.
 
 ## License
-Copyright © 2026. **All rights reserved.** BobberBell is proprietary software and requires a license key. No permission is granted to copy, modify or redistribute this code or the binaries without the author's written consent.
+Copyright © 2026 Chris Monoxide. **All rights reserved.** BobberBell is proprietary software and requires a license key. No permission is granted to copy, modify or redistribute this code or the binaries without the author's written consent.

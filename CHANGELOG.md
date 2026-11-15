@@ -2,6 +2,28 @@
 
 All notable changes to BobberBell are documented here.
 
+## [Unreleased] - portfolio branch
+Engineering and security work; no user-visible changes except where noted. Version stays 1.0.0.
+
+### Changed
+- **Architecture:** split the 2,600-line `Form1.cs` into a platform-neutral `BobberBell.Core` library (settings, licensing, session timing, detection thresholds, key catalog, file validation, logging) and a thin WinForms app (`MainForm` partials, controls in their own files, Windows services behind `IAudioDetector`, `IInputSender`, `IMachineIdProvider`). All Win32 calls moved to `Interop/NativeMethods.cs`.
+- **Logging:** one `IAppLogger` for everything (same file format, rotation and path redaction). A failed sound load now logs the error and shows `Load failed` instead of a bare error box.
+- **Audio:** the realtime fingerprint query is tracked and awaited on Stop; capture, queue and query are cancelled and disposed together.
+
+### Security
+- Nullable reference types, .NET analyzers (`latest`, all security rules) and warnings-as-errors for every project.
+- `settings.json`: 64 KB limit, strict source-generated JSON contract (no comments, trailing commas, duplicate keys; depth ≤ 8), and full value validation in `SettingsValidator`.
+- Sound files: extension allow-list, 50 MB limit, no UNC/device paths or alternate data streams, library files confined to `Sounds\`.
+- `license.dat` reads capped at 4 KB. Licensing algorithm, file format and machine binding unchanged, so existing licenses stay valid.
+- P/Invoke restricted to System32; explorer is started by full path.
+- Random timing jitter uses the OS CSPRNG.
+- `SECURITY.md` and a STRIDE threat model in `docs/THREAT_MODEL.md`.
+
+### Added
+- 154 xUnit v3 tests (settings validation and clamping, session timer and buffs, detection thresholds, licensing, path redaction, key catalog, file validation, settings store, an end-to-end fingerprint match).
+- GitHub Actions CI on `windows-latest` (gitleaks, locked restore, build, test, vulnerable-package gate, publish, Inno Setup installer, checksums) and CodeQL (`security-extended`). Dependabot for NuGet and Actions.
+- Self-contained single-file `win-x64` publish profile, Inno Setup per-user installer, assembly company/copyright info, deterministic builds and NuGet lock files. Code signing documented and ready to enable (`docs/RELEASING.md`).
+
 ## [1.0.0] - 2026-11-14
 First release.
 

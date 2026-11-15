@@ -1,0 +1,22 @@
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.{cs,csx}]
+indent_size = 4
+csharp_style_namespace_declarations = file_scoped:warning
+dotnet_sort_system_directives_first = true
+# Unused usings fail the build (EnforceCodeStyleInBuild).
+dotnet_diagnostic.IDE0005.severity = warning
+# File-scoped namespaces everywhere.
+dotnet_diagnostic.IDE0161.severity = warning
+
+[*.{csproj,props,targets,xml,slnx,pubxml}]
+indent_size = 2
+
+[*.{yml,yaml,json,md}]
+indent_size = 2

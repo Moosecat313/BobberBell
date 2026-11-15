@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directories:
+      - "/src/BobberBell"
+      - "/src/BobberBell.Core"
+      - "/tests/BobberBell.Tests"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      naudio:
+        patterns: ["NAudio*"]
+      soundfingerprinting:
+        patterns: ["SoundFingerprinting*"]
+      test:
+        patterns: ["xunit*", "Microsoft.NET.Test.Sdk"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

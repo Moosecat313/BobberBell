@@ -19,3 +19,7 @@ log*.txt
 # Archives and extra private files
 *.zip
 license.dat
+
+# Local build/publish output
+artifacts/
+*.sarif
