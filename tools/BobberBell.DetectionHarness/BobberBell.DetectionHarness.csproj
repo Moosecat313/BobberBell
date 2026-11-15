@@ -12,13 +12,13 @@
     <ProjectReference Include="..\..\src\BobberBell.Core\BobberBell.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NAudio.Core" Version="2.2.1" />
-    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+    <PackageReference Include="NAudio.Core" Version="3.3.0" />
+    <PackageReference Include="NAudio.Wasapi" Version="3.3.0" />
     <PackageReference Include="NAudio" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="NAudio.Asio" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="NAudio.Midi" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="NAudio.WinForms" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="NAudio.WinMM" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="NAudio.Asio" Version="3.3.0" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="NAudio.Midi" Version="3.3.0" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="NAudio.WinForms" Version="3.3.0" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="NAudio.WinMM" Version="3.3.0" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="SoundFingerprinting" Version="17.4.0" />
     <PackageReference Include="SoundFingerprinting.Audio.NAudio" Version="8.0.0" />
   </ItemGroup>
