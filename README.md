@@ -13,7 +13,7 @@ Listens for a specific sound, then pushes a specified button, hands-free.</p>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2">Download v1.0.2</a> ·
+  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.3">Download v1.0.3</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#security">Security</a> ·
   <a href="#how-to-use">How to use</a> ·
@@ -127,16 +127,16 @@ A short summary; details are in [SECURITY.md](SECURITY.md) and the STRIDE threat
 
 ## Requirements
 - Windows 10 or 11, **x64**
-- The release zip (`BobberBell-1.0.2.zip`): the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
+- The release zip (`BobberBell-1.0.3.zip`): the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
 - A BobberBell license key (asked for on first launch), or use the 5-minute trial first
 
 ## Install
-1. Download **BobberBell-1.0.2.zip** from the [v1.0.1 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2).
+1. Download **BobberBell-1.0.3.zip** from the [v1.0.3 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.3).
 2. Verify the download (optional but recommended). In PowerShell:
    ```powershell
-   Get-FileHash .\BobberBell-1.0.2.zip -Algorithm SHA256
+   Get-FileHash .\BobberBell-1.0.3.zip -Algorithm SHA256
    ```
-   It must match the SHA-256 listed for that file in the [release notes](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2).
+   It must match the SHA-256 listed for that file in the [release notes](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.3).
 3. Unzip anywhere, for example `C:\Games\BobberBell`, and keep the `Assets` and `Sounds` folders next to `BobberBell.exe`.
 4. Run `BobberBell.exe` and enter your license key, or choose **Start trial** to try it first (5 minutes of total running time per PC).
 
@@ -235,7 +235,7 @@ The release zip is framework-dependent: install the [.NET 10 Desktop Runtime (x6
 Keys are at least 16 letters and numbers; dashes and spaces are ignored. The license is tied to your PC and Windows user, so a new PC or user needs the key again. If Windows' machine ID can't be read, the key works for that session only.
 
 **The trial ended or isn't offered.**
-The trial is 5 minutes of total running time per PC and doesn't reset. It isn't offered if the trial record was edited or copied from another PC, or if Windows' machine ID can't be read. Enter a license key to continue.
+The trial is 5 minutes of total running time per PC and doesn't reset. It isn't offered if the trial record was edited or copied from another PC, or if Windows' machine ID can't be read. Enter a license key to continue. The reason is written to `%LOCALAPPDATA%\BobberBell\log.txt`. Cancelling the key prompt doesn't show an error; it takes you back to the trial choice (if time is left) or closes BobberBell.
 
 **It closes right away with "Please close … and start BobberBell again."**
 A debugging or memory tool is running. Close it and start BobberBell again.

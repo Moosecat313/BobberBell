@@ -2,6 +2,18 @@
 
 All notable changes to BobberBell are documented here.
 
+## [1.0.3] - 2026-11-15
+
+### Fixed
+- Cancelling the license key prompt (or pressing OK with nothing typed) no longer shows "Invalid license key." It counts as a cancel: at startup you go back to the trial choice while trial time is left, otherwise the app closes quietly; from the trial footer or the License button the prompt just closes; when the trial has ended the app closes. A wrong key still shows the error.
+- When BobberBell closes at startup (no key, a wrong key, or the start-up dialog cancelled), the reason, including why no trial was offered (for example an edited trial record), is now written to `log.txt` first.
+- The startup license and trial dialogs open centered and in front of a fullscreen game, with a taskbar button. Prompts shown while the app is running don't force themselves in front.
+
+### Added
+- `KeyPromptFlow` in `BobberBell.Core` (cancel detection and what happens after the key prompt) with unit tests.
+
+Licensing (`LicenseService`, `license.dat` format, PBKDF2 hashes, binding literal), `ProtectionCheck` and its blocklist are unchanged.
+
 ## [1.0.2] - 2026-11-15
 
 ### Added
@@ -66,6 +78,7 @@ First release.
 - .NET 10 (`net10.0-windows`), WinForms.
 - NAudio.Core, NAudio.Wasapi and NAudio.WinMM 2.2.1; SoundFingerprinting 17.4.0 with SoundFingerprinting.Audio.NAudio 8.0.0; H.InputSimulator 1.5.0.
 
+[1.0.3]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.3
 [1.0.2]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2
 [1.0.1]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.0

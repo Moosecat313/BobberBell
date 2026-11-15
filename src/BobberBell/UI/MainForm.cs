@@ -108,6 +108,10 @@ internal sealed partial class MainForm : Form
         var mode = CheckLicense();
         if (mode == StartupMode.Exit)
         {
+            // Write why the app is closing (including why no trial was offered) before exiting.
+            logger.Info($"{ProductTitle} started");
+            foreach (var note in migrationNotes) logger.Info(note);
+            migrationNotes.Clear();
             Environment.Exit(0);
             return;
         }

@@ -4,7 +4,6 @@ using System.Windows.Forms;
 using BobberBell.Core.Licensing;
 using BobberBell.Core.Session;
 using BobberBell.Services;
-using Microsoft.VisualBasic;
 
 namespace BobberBell.UI;
 
@@ -52,8 +51,18 @@ internal sealed partial class MainForm
                 break;
         }
 
+        // Startup dialogs are owned by an invisible top-most window so they appear in front of a fullscreen game.
+        using var owner = new StartupDialogOwner();
+        owner.ShowInFront();
+
         if (!trial.IsAvailable)
-            return PromptForKey(null) ? StartupMode.Licensed : StartupMode.Exit;
+        {
+            var outcome = PromptForKey(owner, true);
+            if (KeyPromptFlow.Next(KeyPromptContext.Startup, outcome, false) == KeyPromptNextStep.ContinueLicensed)
+                return StartupMode.Licensed;
+            migrationNotes.Add(KeyPromptFlow.StartupExitReason(outcome));
+            return StartupMode.Exit;
+        }
 
         while (true)
         {
@@ -71,12 +80,15 @@ internal sealed partial class MainForm
                 AllowCancel = true,
                 Buttons = { keyButton, trialButton, TaskDialogButton.Cancel },
             };
+            page.Created += (s, e) => StartupDialogOwner.BringToFront(page.BoundDialog?.Handle ?? IntPtr.Zero);
 
-            var choice = TaskDialog.ShowDialog(page);
+            var choice = TaskDialog.ShowDialog(owner, page, TaskDialogStartupLocation.CenterOwner);
             if (choice == keyButton)
             {
-                if (PromptForKey(null)) return StartupMode.Licensed;
-                continue; // wrong key: back to the choice while trial time is left
+                var outcome = PromptForKey(owner, true);
+                if (KeyPromptFlow.Next(KeyPromptContext.Startup, outcome, trial.IsAvailable) == KeyPromptNextStep.ContinueLicensed)
+                    return StartupMode.Licensed;
+                continue; // cancelled or wrong key: back to the choice while trial time is left
             }
 
             if (choice == trialButton)
@@ -85,29 +97,35 @@ internal sealed partial class MainForm
                 return StartupMode.Trial;
             }
 
+            migrationNotes.Add(KeyPromptFlow.StartupExitReason(null));
             return StartupMode.Exit;
         }
     }
 
-    // The v1.0 key prompt and messages. Returns true if the key was accepted.
-    private static bool PromptForKey(IWin32Window? owner)
+    // The key prompt with the v1.0 error messages. Cancel, close or an empty entry is a cancel and shows no error.
+    private static KeyPromptOutcome PromptForKey(IWin32Window owner, bool inFront)
     {
-        string input = Interaction.InputBox("Enter license key:", "BobberBell", "");
-        switch (license.Activate(input))
+        string? input = KeyEntryForm.Ask(owner, inFront);
+        if (KeyPromptFlow.IsCancel(input)) return KeyPromptOutcome.Cancelled;
+
+        var result = license.Activate(input);
+        switch (result)
         {
             case LicenseCheckResult.Activated:
-                return true;
+                break;
             case LicenseCheckResult.SessionOnly:
                 migrationNotes.Add("License accepted for this session only (this PC's MachineGuid could not be read); the key will be asked for again next launch.");
-                return true;
+                break;
             case LicenseCheckResult.TooShort:
                 MessageBox.Show(owner, $"That key is too short. License keys have at least {LicenseService.MinCodeLength} letters and numbers.",
                     "BobberBell", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                break;
             default:
                 MessageBox.Show(owner, "Invalid license key.", "BobberBell", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                break;
         }
+
+        return KeyPromptFlow.Classify(result);
     }
 
     // Called by the UI timer: saves trial time every few seconds, shows what is left, and ends the trial at 0:00.
@@ -131,7 +149,9 @@ internal sealed partial class MainForm
     private void EnterKeyDuringTrial()
     {
         if (!trialMode || trialEnding) return;
-        if (PromptForKey(this)) SwitchToLicensed();
+        var outcome = PromptForKey(this, false);
+        if (KeyPromptFlow.Next(KeyPromptContext.DuringTrial, outcome, true) == KeyPromptNextStep.ContinueLicensed)
+            SwitchToLicensed();
     }
 
     private void SwitchToLicensed()
@@ -154,14 +174,15 @@ internal sealed partial class MainForm
         AppendLog("Trial time used up → license key required");
         MessageBox.Show(this, "Your 5-minute trial on this PC has ended. Enter a license key to keep using BobberBell.",
             "BobberBell", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        if (PromptForKey(this))
+        var outcome = PromptForKey(this, false);
+        if (KeyPromptFlow.Next(KeyPromptContext.TrialExpired, outcome, false) == KeyPromptNextStep.ContinueLicensed)
         {
             SwitchToLicensed();
             trialEnding = false;
             return;
         }
 
-        AppendLog("No valid license key → closing");
+        AppendLog(outcome == KeyPromptOutcome.Cancelled ? "No license key entered → closing" : "License key not accepted → closing");
         Close();
     }
 

@@ -4,7 +4,7 @@ namespace BobberBell.Core.Settings;
 public static class SettingsLimits
 {
     /// <summary>Display version used in titles.</summary>
-    public const string AppVersion = "1.0.2";
+    public const string AppVersion = "1.0.3";
 
     /// <summary>Default window title.</summary>
     public const string DefaultWindowName = "BobberBell - v" + AppVersion;
