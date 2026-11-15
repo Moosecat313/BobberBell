@@ -167,7 +167,10 @@
         }
       },
       "bobberbell.core": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "SoundFingerprinting": "[17.4.0, )"
+        }
       }
     }
   }

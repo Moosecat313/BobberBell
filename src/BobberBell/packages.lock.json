@@ -126,7 +126,10 @@
         "contentHash": "UDQ8fbEKqpQktJfFyqkZ22S7P01sJWNmqkYjzbwZdZUHFwHIDigmWIzxmExF7NjbNoTqmv2Dfsu3rOpRHXK5EA=="
       },
       "bobberbell.core": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "SoundFingerprinting": "[17.4.0, )"
+        }
       }
     },
     "net10.0-windows7.0/win-x64": {}

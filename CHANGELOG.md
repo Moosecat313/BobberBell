@@ -2,8 +2,19 @@
 
 All notable changes to BobberBell are documented here.
 
-## [Unreleased] - portfolio branch
-Engineering and security work; no user-visible changes except where noted. Version stays 1.0.0.
+## [1.0.1] - 2026-11-15
+Bug-fix release, plus the engineering and security work from the portfolio branch.
+
+### Fixed
+- **Fixed: splash detection never fired because loopback audio wasn't converted to 5512 Hz mono.** WASAPI loopback delivers the device mix format (typically 48 kHz, 32-bit float, stereo), but SoundFingerprinting's realtime query only accepts 5512 Hz mono, so the first loud chunk threw `Provided samples are not sampled in the required sample rate 5512`, the query died and no bite was ever detected. Capture audio is now decoded (float or 8/16/24/32-bit PCM, any channel count), averaged to mono and resampled to 5512 Hz with a band-limited streaming resampler (windowed sinc, anti-aliased, state kept across chunks). The volume meter still reads the original audio.
+- A match is now reported once 1 s of a reference has been heard. The library's default realtime filter needs 5 s of match and waits for the match to end, which a ~3 s splash never satisfied.
+- Chunks below the volume gate are fingerprinted as silence instead of being dropped, so the query's timeline keeps moving.
+- If the fingerprint query ever fails, the error is logged once and the query restarts for the rest of the listen window instead of dying silently.
+- Reference sounds (library and custom) are fingerprinted from the same 5512 Hz mono stream (decoded by `NAudioService`), now shared through `SplashFingerprintEngine` in `BobberBell.Core`.
+
+### Added
+- Tests for the audio conversion (output rate and length, mono downmix, tone frequency and level preserved, aliasing rejected, PCM formats) and the live pipeline (each splash detected through simulated 48 kHz stereo loopback; tone, quiet splash and query-failure restart cases).
+- `tools/BobberBell.DetectionHarness`: a console tool that plays each splash through a real output device while capturing it with the app's detection core, and reports confidence per file plus non-splash controls.
 
 ### Changed
 - **Architecture:** split the 2,600-line `Form1.cs` into a platform-neutral `BobberBell.Core` library (settings, licensing, session timing, detection thresholds, key catalog, file validation, logging) and a thin WinForms app (`MainForm` partials, controls in their own files, Windows services behind `IAudioDetector`, `IInputSender`, `IMachineIdProvider`). All Win32 calls moved to `Interop/NativeMethods.cs`.
@@ -20,7 +31,7 @@ Engineering and security work; no user-visible changes except where noted. Versi
 - `SECURITY.md` and a STRIDE threat model in `docs/THREAT_MODEL.md`.
 
 ### Added
-- 154 xUnit v3 tests (settings validation and clamping, session timer and buffs, detection thresholds, licensing, path redaction, key catalog, file validation, settings store, an end-to-end fingerprint match).
+- xUnit v3 tests (settings validation and clamping, session timer and buffs, detection thresholds, licensing, path redaction, key catalog, file validation, settings store, an end-to-end fingerprint match).
 - GitHub Actions CI on `windows-latest` (gitleaks, locked restore, build, test, vulnerable-package gate, publish, Inno Setup installer, checksums) and CodeQL (`security-extended`). Dependabot for NuGet and Actions.
 - Self-contained single-file `win-x64` publish profile, Inno Setup per-user installer, assembly company/copyright info, deterministic builds and NuGet lock files. Code signing documented and ready to enable (`docs/RELEASING.md`).
 
@@ -45,4 +56,5 @@ First release.
 - .NET 10 (`net10.0-windows`), WinForms.
 - NAudio.Core, NAudio.Wasapi and NAudio.WinMM 2.2.1; SoundFingerprinting 17.4.0 with SoundFingerprinting.Audio.NAudio 8.0.0; H.InputSimulator 1.5.0.
 
+[1.0.1]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.0

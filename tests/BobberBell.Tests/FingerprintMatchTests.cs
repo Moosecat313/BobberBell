@@ -11,6 +11,8 @@ using SoundFingerprinting.InMemory;
 namespace BobberBell.Tests;
 
 // End-to-end check of the fingerprint stage with the bundled splash sounds (managed WAV decoder, runs on any OS).
+// Serialised with other tests that open the bundled WAVs: the decoder opens them without sharing on Windows.
+[Collection(SoundFilesCollection.Name)]
 public class FingerprintMatchTests
 {
     private static readonly string SoundsDir = Path.Combine(AppContext.BaseDirectory, "Sounds");

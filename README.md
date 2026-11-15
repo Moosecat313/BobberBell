@@ -13,7 +13,7 @@ Listens for a specific sound, then pushes a specified button, hands-free.</p>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.0">Download v1.0.0</a> ·
+  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1">Download v1.0.1</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#security">Security</a> ·
   <a href="#how-to-use">How to use</a> ·
@@ -61,12 +61,15 @@ casts again, with randomized timing, a session time limit and timed buffs.
 ## Architecture
 ```mermaid
 flowchart LR
-    subgraph Capture["Audio capture (Services)"]
-        A[WASAPI loopback<br/>selected output device] --> B[Float samples<br/>per chunk]
-        B --> C{Peak dBFS ≥<br/>minimum volume?}
+    subgraph Capture["Audio capture (app) and conversion (Core)"]
+        A[WASAPI loopback<br/>selected output device<br/>e.g. 48 kHz float stereo] --> B[Decode, downmix to mono,<br/>anti-aliased resample to 5512 Hz]
+        A --> C{Peak dBFS of original audio<br/>≥ minimum volume?}
     end
-    subgraph Match["Fingerprint match"]
-        C -- yes --> D[SoundFingerprinting<br/>realtime query]
+    subgraph Match["Fingerprint match (Core)"]
+        B --> K[5512 Hz mono chunk]
+        C -- yes, keep audio --> K
+        C -- no, use silence --> K
+        K --> D[SoundFingerprinting<br/>realtime query<br/>≥ 1 s of a reference]
         R[(In-memory index of<br/>reference sounds)] --> D
         D --> E{Confidence ≥<br/>minimum similarity?}
     end
@@ -76,7 +79,6 @@ flowchart LR
         G -- yes --> H[SendInput<br/>scan code, 40–90 ms hold]
         H --> I[Cast wait → cast → listen again]
     end
-    C -- no --> X[drop chunk]
     E -- no --> M[update live meter only]
 ```
 
@@ -84,12 +86,14 @@ The solution is split so that everything that can be tested without Windows, aud
 
 | Project | Target | Contents |
 |---|---|---|
-| `src/BobberBell.Core` | `net10.0` (any OS) | Settings model, validator and JSON store; license service; session timer and buff schedule; detection thresholds; key allow-list; sound-file path validator; redacting file logger. |
+| `src/BobberBell.Core` | `net10.0` (any OS) | Detection engine (`SplashFingerprintEngine`, `ListenSession`: capture-format decoding, mono downmix, streaming 5512 Hz resampler, realtime fingerprint query with restart); settings model, validator and JSON store; license service; session timer and buff schedule; detection thresholds; key allow-list; sound-file path validator; redacting file logger. |
 | `src/BobberBell` | `net10.0-windows` | WinForms UI (`UI/MainForm.*.cs` partials, `UI/Controls/*`), Windows services behind interfaces (`IAudioDetector` → `LoopbackFingerprintDetector`, `IInputSender` → `WindowsInputSender`, `IMachineIdProvider` → `RegistryMachineIdProvider`, `GlobalHotkeyHook`), and all P/Invoke in `Interop/NativeMethods.cs`. |
-| `tests/BobberBell.Tests` | `net10.0` | xUnit v3 tests for Core, plus an end-to-end fingerprint match on the bundled sounds. |
+| `tests/BobberBell.Tests` | `net10.0` | xUnit v3 tests for Core, including audio conversion and an end-to-end detection run of each bundled splash through simulated 48 kHz stereo loopback. |
+| `tools/BobberBell.DetectionHarness` | `net10.0-windows` | Console tool: plays each splash (and non-splash controls) through a real output device while the Core engine listens on that device's loopback, and prints the confidence per file. |
 
 ## Design decisions
-- **Fingerprinting, not waveform matching.** Spectral fingerprints tolerate volume changes, mixing with other game audio and slight pitch/timing drift. A cheap per-chunk loudness gate runs first, so quiet chunks never reach the matcher.
+- **Fingerprinting, not waveform matching.** Spectral fingerprints tolerate volume changes, mixing with other game audio and slight pitch/timing drift. A cheap per-chunk loudness gate runs first; quiet chunks reach the matcher as silence, so they cannot match but the stream's timeline keeps moving.
+- **Convert at the edge.** The loopback device's native format (rate, channels, float or PCM) is converted once, in Core, to the 5512 Hz mono stream the fingerprinter requires, using a stateful band-limited resampler so chunk boundaries are seamless and nothing above the new Nyquist aliases into the band the fingerprints use. Reference files go through the same 5512 Hz mono decode.
 - **Loopback, not microphone.** Capturing the output device hears exactly what the game renders, without room noise or a mic permission.
 - **Safe by default.** *Send inputs* is never persisted and is off at every launch; the app only sends keys while the window that had focus at the end of the countdown is still active; the session auto-stops after 0.25 h by default, and settings files cannot raise it above 168 h or silently disable it.
 - **Allow-listed inputs.** Every bindable key comes from one catalog (`KeyCatalog`); settings that name anything else fall back to the defaults.
@@ -122,23 +126,20 @@ A short summary; details are in [SECURITY.md](SECURITY.md) and the STRIDE threat
 
 ## Requirements
 - Windows 10 or 11, **x64**
-- v1.0.0 zip: the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
+- The release zip (`BobberBell-1.0.1.zip`): the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
 - A BobberBell license key (asked for on first launch)
 
 ## Install
-1. Download **BobberBell-1.0.0.zip** from the [v1.0.0 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.0).
+1. Download **BobberBell-1.0.1.zip** from the [v1.0.1 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1).
 2. Verify the download (optional but recommended). In PowerShell:
    ```powershell
-   Get-FileHash .\BobberBell-1.0.0.zip -Algorithm SHA256
+   Get-FileHash .\BobberBell-1.0.1.zip -Algorithm SHA256
    ```
-   The hash must be:
-   ```
-   8754DE4135C197920CA88F06E4EEE66122A687D2FFDB6746E6A6DB8854BA2224
-   ```
+   It must match the SHA-256 listed for that file in the [release notes](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1).
 3. Unzip anywhere, for example `C:\Games\BobberBell`, and keep the `Assets` and `Sounds` folders next to `BobberBell.exe`.
 4. Run `BobberBell.exe` and enter your license key.
 
-Builds from CI (`BobberBell-win-x64` artifact) contain a portable self-contained zip, a per-user installer (no admin rights) and `SHA256SUMS.txt`.
+Builds from CI (`BobberBell-win-x64` artifact) contain the framework-dependent release zip, a self-contained single-file zip (no runtime needed), a per-user installer (no admin rights) and `SHA256SUMS.txt`.
 
 ## How to use
 The same guide is built into the app (**How to use** button).
@@ -215,7 +216,7 @@ dotnet build BobberBell.slnx -c Release          # warnings are errors
 dotnet test --solution BobberBell.slnx -c Release
 # self-contained single-file exe (no .NET runtime needed) in artifacts\publish\win-x64\
 dotnet publish src\BobberBell -c Release -p:PublishProfile=win-x64-singlefile
-# optional installer (Inno Setup 6): artifacts\installer\BobberBell-1.0.0-setup.exe
+# optional installer (Inno Setup 6): artifacts\installer\BobberBell-1.0.1-setup.exe
 iscc installer\BobberBell.iss
 ```
 On Linux, add `-p:EnableWindowsTargeting=true` to build the Windows project. Releasing and the optional code-signing step are described in [docs/RELEASING.md](docs/RELEASING.md).
@@ -226,7 +227,7 @@ Libraries: NAudio (Core, Wasapi, WinMM), SoundFingerprinting and SoundFingerprin
 
 ## FAQ / Troubleshooting
 **The app won't start or says .NET is missing.**
-The v1.0.0 zip is framework-dependent: install the [.NET 10 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0) (the plain .NET Runtime is not enough for a WinForms app). The self-contained build and installer from CI need no runtime.
+The release zip is framework-dependent: install the [.NET 10 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0) (the plain .NET Runtime is not enough for a WinForms app). The self-contained build and installer from CI need no runtime.
 
 **It asks for a license key every time, or says the key is invalid.**
 Keys are at least 16 letters and numbers; dashes and spaces are ignored. The license is tied to your PC and Windows user, so a new PC or user needs the key again. If Windows' machine ID can't be read, the key works for that session only.

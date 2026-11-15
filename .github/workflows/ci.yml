@@ -71,6 +71,13 @@ jobs:
           Write-Output $out
           if ($out -match 'has the following vulnerable packages') { Write-Error 'Vulnerable packages found'; exit 1 }
 
+      - name: Publish (framework-dependent, release zip layout)
+        shell: pwsh
+        run: |
+          dotnet publish src/BobberBell/BobberBell.csproj -c Release --no-self-contained -o artifacts/publish/framework-dependent
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem artifacts/publish/framework-dependent -Recurse -Include *.pdb,*.xml | Remove-Item -Force
+
       - name: Publish (self-contained, single file, win-x64)
         run: dotnet publish src/BobberBell/BobberBell.csproj -c Release -p:PublishProfile=win-x64-singlefile
 
@@ -93,11 +100,20 @@ jobs:
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\BobberBell.iss
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Zip portable build and write checksums
+      - name: Zip builds, check contents and write checksums
         shell: pwsh
         run: |
-          Compress-Archive -Path artifacts\publish\win-x64\* -DestinationPath artifacts\BobberBell-win-x64-portable.zip -Force
-          $files = @('artifacts\BobberBell-win-x64-portable.zip') + (Get-ChildItem artifacts\installer\*.exe | ForEach-Object FullName)
+          $v = (dotnet msbuild src/BobberBell/BobberBell.csproj -getProperty:Version).Trim()
+          Compress-Archive -Path artifacts\publish\framework-dependent\* -DestinationPath "artifacts\BobberBell-$v.zip" -Force
+          Compress-Archive -Path artifacts\publish\win-x64\* -DestinationPath "artifacts\BobberBell-$v-win-x64-selfcontained.zip" -Force
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          foreach ($zip in Get-ChildItem artifacts\*.zip) {
+            $names = [IO.Compression.ZipFile]::OpenRead($zip.FullName).Entries.FullName
+            $bad = $names | Where-Object { $_ -match '(?i)(FriendCodes\.txt|license\.dat|settings\.json|log(\.old)?\.txt|\.pdb$)' }
+            if ($bad) { Write-Error "$($zip.Name) contains files that must not ship: $bad"; exit 1 }
+            "$($zip.Name): $($names.Count) files, none excluded"
+          }
+          $files = (Get-ChildItem artifacts\*.zip | ForEach-Object FullName) + (Get-ChildItem artifacts\installer\*.exe | ForEach-Object FullName)
           Get-FileHash -Algorithm SHA256 $files | ForEach-Object { "$($_.Hash)  $(Split-Path $_.Path -Leaf)" } | Set-Content artifacts\SHA256SUMS.txt
           Get-Content artifacts\SHA256SUMS.txt
 
@@ -105,7 +121,7 @@ jobs:
         with:
           name: BobberBell-win-x64
           path: |
-            artifacts/BobberBell-win-x64-portable.zip
+            artifacts/*.zip
             artifacts/installer/*.exe
             artifacts/SHA256SUMS.txt
           if-no-files-found: error

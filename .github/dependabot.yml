@@ -5,6 +5,7 @@ updates:
       - "/src/BobberBell"
       - "/src/BobberBell.Core"
       - "/tests/BobberBell.Tests"
+      - "/tools/BobberBell.DetectionHarness"
     schedule:
       interval: weekly
     open-pull-requests-limit: 5

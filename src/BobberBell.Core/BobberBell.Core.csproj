@@ -1,9 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Platform-neutral logic (no WinForms, audio or Win32), so it is fully unit-testable on any OS. -->
+  <!-- Platform-neutral logic (no WinForms, audio devices or Win32), so it is fully unit-testable on any OS.
+       SoundFingerprinting is pure managed code; audio capture and file decoding stay in the Windows app. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>BobberBell.Core</RootNamespace>
     <AssemblyName>BobberBell.Core</AssemblyName>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="SoundFingerprinting" Version="17.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="BobberBell.Tests" />
+  </ItemGroup>
 </Project>
