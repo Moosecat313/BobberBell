@@ -81,7 +81,7 @@ internal sealed partial class MainForm
              "On the Buff tab, renew a buff such as a lure on a timer.",
              new[] {
                  "Turn on Auto-refresh and set the interval in minutes.",
-                 "When a refresh is due, BobberBell finishes the current catch first. It never buffs in the middle of a bite.",
+                 "When a refresh is due, BobberBell finishes handling the current bite first. It never buffs in the middle of a bite.",
                  "Sequence: buff key, buffing wait, rod key, buffing wait, then the cast.",
                  "Also apply on Start buffs before the first cast." },
              null),

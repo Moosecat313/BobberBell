@@ -187,7 +187,7 @@ The same guide is built into the app (**How to use** button).
 
 **8. Buffs.** On the Buff tab, renew a buff such as a lure on a timer.
 - Turn on Auto-refresh and set the interval in minutes.
-- When a refresh is due, BobberBell finishes the current catch first. It never buffs in the middle of a bite.
+- When a refresh is due, BobberBell finishes handling the current bite first. It never buffs in the middle of a bite.
 - The sequence is: buff key, buffing wait, rod key, buffing wait, then the cast.
 - *Also apply on Start* buffs before the first cast.
 
@@ -199,7 +199,7 @@ The same guide is built into the app (**How to use** button).
 
 **10. Window name.** On the Window tab, set the name shown in the title bar and taskbar. Random makes a random name, Apply uses it now, and Save settings keeps it.
 
-**11. Log and settings.** The Log tab lists bites, casts, buffs and errors. The Log confirms a key was sent, not that the game accepted it. **Save settings** stores your setup. Settings are not saved automatically on exit.
+**11. Log and settings.** The Log tab lists detected bites, casts, buffs and errors. The Log confirms a key was sent, not that the game accepted it. **Save settings** stores your setup. Settings are not saved automatically on exit.
 
 **12. License.** The License button shows the version and license status. The license is stored for your Windows user, tied to this PC, and checked at launch. Moving to a new PC means entering the code again. Without a license, each PC gets a 5-minute trial (total running time). During the trial, the License button or the gold line at the bottom asks for your key.
 

@@ -6,6 +6,7 @@ All notable changes to BobberBell are documented here.
 
 ### Fixed
 - Dropdown lists (for example Detection mode) opened one row tall, so *Volume trigger* could only be picked with the arrow keys. The lists now open tall enough to show all their entries.
+- Log and status wording no longer claim a fish was caught: they say "Bite detected" and "reel key sent → 1" (or "detect only: reel key not sent"), because the app only hears the bite and presses the key.
 
 ## [1.0.4] - 2026-11-15
 

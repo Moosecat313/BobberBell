@@ -565,7 +565,7 @@ internal sealed partial class MainForm
 
         p.Controls.Add(new Label
         {
-            Text = "When a refresh is due, BobberBell finishes the current catch first and never buffs mid-bite.\n" +
+            Text = "When a refresh is due, BobberBell finishes handling the current bite first and never buffs mid-bite.\n" +
                    "Sequence: buff key, buffing wait, rod key, buffing wait, then the cast.",
             ForeColor = ColMuted,
             Location = new Point(24, 228),

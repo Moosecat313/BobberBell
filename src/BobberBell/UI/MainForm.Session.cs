@@ -79,7 +79,7 @@ internal sealed partial class MainForm
         btnStart.Enabled = true;
         btnStop.Enabled = false;
         SetStatus("Stopped — test detection first", ColGoldHi);
-        AppendLog(catches > 0 ? $"Stopped ({catches} bites this session)" : "Stopped");
+        AppendLog(catches > 0 ? $"Stopped ({catches} bites detected this session)" : "Stopped");
         UpdateLiveMeters(0, -120);
         UpdateSessionStatus();
     }
@@ -104,11 +104,11 @@ internal sealed partial class MainForm
                     double react = 0.5 + Jitter.NextDouble() * 1.0;
                     await Task.Delay(TimeSpan.FromSeconds(react), ct);
                     string reel = await PressAsync(SelectedKey(comboBoxKey), false, ct);
-                    AppendLog($"{hit} heard · {react:F3}s → reel in {reel}");
+                    AppendLog($"Bite detected: {hit} · {react:F3}s → {ReelText(reel)}");
 
                     double min = (double)nudCastMin.Value, max = Math.Max(min, (double)nudCastMax.Value);
                     double wait = min + Jitter.NextDouble() * (max - min);
-                    SetStatus($"Caught · casting in {wait:0.0}s", ColGoldHi);
+                    SetStatus($"Bite detected · casting in {wait:0.0}s", ColGoldHi);
                     await Task.Delay(TimeSpan.FromSeconds(wait), ct);
                 }
                 else
@@ -128,6 +128,12 @@ internal sealed partial class MainForm
             if (isRunning && sessionCts?.Token == ct) BtnStop_Click(this, EventArgs.Empty);
         }
     }
+
+    // Log wording for the reel-in press: a bite was only detected; the game decides whether anything is caught.
+    private static string ReelText(string press) =>
+        press.EndsWith("(detect only)", StringComparison.Ordinal) ? "detect only: reel key not sent"
+        : press.Contains("skipped", StringComparison.Ordinal) || press == "no key selected" ? $"reel key not sent ({press})"
+        : $"reel key sent → {press}";
 
     private async Task CastAsync(string label, CancellationToken ct)
     {
