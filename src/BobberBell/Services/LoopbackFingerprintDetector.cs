@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using BobberBell.Core.Audio;
@@ -75,6 +76,74 @@ internal sealed class LoopbackFingerprintDetector : IAudioDetector
         {
             await cts.CancelAsync().ConfigureAwait(true);
             await StopCaptureAsync().ConfigureAwait(true);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> ListenVolumeTriggerAsync(MMDevice? device, VolumeTriggerOptions options, TimeSpan window, CancellationToken ct)
+    {
+        StopCaptureDevice();
+        var capture = device != null ? new WasapiLoopbackCapture(device) : new WasapiLoopbackCapture();
+        VolumeTriggerDetector trigger;
+        try
+        {
+            trigger = new VolumeTriggerDetector(ToSampleFormat(capture.WaveFormat), options);
+        }
+        catch (NotSupportedException ex)
+        {
+            capture.Dispose();
+            logger.Error("Unsupported audio device format", ex);
+            throw;
+        }
+
+        var gate = new object();
+        var heard = new TaskCompletionSource<VolumeTriggerEvent>(TaskCreationOptions.RunContinuationsAsynchronously);
+        capture.DataAvailable += (s, a) =>
+        {
+            if (a.BytesRecorded <= 0) return;
+            VolumeTriggerEvent? bite;
+            float db;
+            lock (gate)
+            {
+                if (heard.Task.IsCompleted) return;
+                bite = trigger.Push(a.Buffer.AsSpan(0, a.BytesRecorded), out db);
+            }
+
+            LevelMeasured?.Invoke(db);
+            if (bite != null) heard.TrySetResult(bite);
+        };
+
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        lock (captureGate)
+        {
+            loopback = capture;
+            listenCts = cts;
+        }
+
+        try
+        {
+            capture.StartRecording();
+            var done = await Task.WhenAny(heard.Task, Task.Delay(window, cts.Token)).ConfigureAwait(true);
+            ct.ThrowIfCancellationRequested();
+            if (done != heard.Task) return null;
+            var b = await heard.Task.ConfigureAwait(true);
+            return string.Format(CultureInfo.InvariantCulture, "Splash (volume trigger: {0:0} dBFS, {1:0.0} s, tone {2:0.0} kHz)",
+                b.PeakDb, b.DurationSeconds, b.CentroidHz / 1000);
+        }
+        finally
+        {
+            await cts.CancelAsync().ConfigureAwait(true);
+            StopCaptureDevice();
+            lock (captureGate) listenCts = null;
+            lock (gate)
+            {
+                trigger.Complete();
+                foreach (var r in trigger.Rejected)
+                {
+                    logger.Info(string.Format(CultureInfo.InvariantCulture, "Ignored sound at {0:0.0} s: {1:0.00} s, {2:0} dBFS, tone {3:0.0} kHz ({4})",
+                        r.StartSeconds, r.DurationSeconds, r.PeakDb, r.CentroidHz / 1000, r.Reason));
+                }
+            }
         }
     }
 

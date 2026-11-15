@@ -18,7 +18,7 @@ internal sealed partial class MainForm
 
     private async void BtnStart_Click(object? sender, EventArgs e)
     {
-        if (!detector.HasReferences)
+        if (!VolumeTriggerMode && !detector.HasReferences)
         {
             MessageBox.Show("Load a reference sound first.");
             return;
@@ -175,6 +175,18 @@ internal sealed partial class MainForm
     private Task<string?> ListenWindowAsync(CancellationToken ct)
     {
         lastSimilarity = 0;
+        if (VolumeTriggerMode)
+        {
+            var options = new VolumeTriggerOptions(
+                LevelDb: (float)nudTriggerLevel.Value,
+                MinSeconds: (double)nudTriggerSeconds.Value,
+                IgnoreSeconds: (double)nudTriggerIgnore.Value,
+                ToneFilter: chkToneFilter.Checked,
+                MinToneHz: (double)triggerMinToneHz,
+                MaxToneHz: (double)triggerMaxToneHz);
+            return detector.ListenVolumeTriggerAsync(SelectedDevice(), options, TimeSpan.FromSeconds(ListenWindowSeconds), ct);
+        }
+
         var thresholds = new DetectionThresholds((float)nudSimilarity.Value, (float)nudMinVolume.Value);
         return detector.ListenAsync(SelectedDevice(), thresholds, TimeSpan.FromSeconds(ListenWindowSeconds), ct);
     }

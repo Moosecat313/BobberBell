@@ -28,6 +28,13 @@ internal sealed partial class MainForm
         RodKey = SelectedKey(comboBoxRodKey)?.Name ?? "3",
         BuffWaitSeconds = nudBuffWait.Value,
         BuffOnStart = chkBuffOnStart.Checked,
+        DetectionMode = VolumeTriggerMode ? SettingsLimits.DetectionModeVolumeTrigger : SettingsLimits.DetectionModeFingerprint,
+        TriggerLevelDb = nudTriggerLevel.Value,
+        TriggerMinSeconds = nudTriggerSeconds.Value,
+        TriggerIgnoreSeconds = nudTriggerIgnore.Value,
+        TriggerToneFilter = chkToneFilter.Checked,
+        TriggerMinToneHz = triggerMinToneHz,
+        TriggerMaxToneHz = triggerMaxToneHz,
     };
 
     private void BtnSave_Click(object? sender, EventArgs e)
@@ -95,6 +102,14 @@ internal sealed partial class MainForm
         nudBuffWait.Value = settings.BuffWaitSeconds;
         chkBuffEnabled.Checked = settings.BuffEnabled;
         chkBuffOnStart.Checked = settings.BuffOnStart;
+        comboDetectionMode.SelectedIndex = settings.DetectionMode == SettingsLimits.DetectionModeVolumeTrigger ? 1 : 0;
+        nudTriggerLevel.Value = settings.TriggerLevelDb;
+        nudTriggerSeconds.Value = settings.TriggerMinSeconds;
+        nudTriggerIgnore.Value = settings.TriggerIgnoreSeconds;
+        chkToneFilter.Checked = settings.TriggerToneFilter;
+        triggerMinToneHz = settings.TriggerMinToneHz;
+        triggerMaxToneHz = settings.TriggerMaxToneHz;
+        UpdateDetectionModeControls();
         txtWindowName.Text = settings.WindowName;
         Text = settings.WindowName;
         lastSoundPath = settings.LastSoundPath;

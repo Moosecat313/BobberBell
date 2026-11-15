@@ -4,7 +4,7 @@ namespace BobberBell.Core.Settings;
 public static class SettingsLimits
 {
     /// <summary>Display version used in titles.</summary>
-    public const string AppVersion = "1.0.3";
+    public const string AppVersion = "1.0.4";
 
     /// <summary>Default window title.</summary>
     public const string DefaultWindowName = "BobberBell - v" + AppVersion;
@@ -65,4 +65,43 @@ public static class SettingsLimits
 
     /// <summary>Largest settings file accepted, in bytes.</summary>
     public const int MaxSettingsFileBytes = 64 * 1024;
+
+    /// <summary>Detection mode: fingerprint matching (default).</summary>
+    public const string DetectionModeFingerprint = "Fingerprint";
+
+    /// <summary>Detection mode: volume trigger.</summary>
+    public const string DetectionModeVolumeTrigger = "VolumeTrigger";
+
+    /// <summary>Default detection mode.</summary>
+    public const string DefaultDetectionMode = DetectionModeFingerprint;
+
+    /// <summary>Default volume-trigger level (dBFS).</summary>
+    public const decimal DefaultTriggerLevelDb = -38m;
+
+    /// <summary>Shortest volume-trigger sound length (s).</summary>
+    public const decimal MinTriggerSeconds = 0.1m;
+
+    /// <summary>Longest volume-trigger sound length (s).</summary>
+    public const decimal MaxTriggerSeconds = 3m;
+
+    /// <summary>Default volume-trigger sound length (s).</summary>
+    public const decimal DefaultTriggerMinSeconds = 0.6m;
+
+    /// <summary>Longest ignore time after a cast (s).</summary>
+    public const decimal MaxTriggerIgnoreSeconds = 10m;
+
+    /// <summary>Default ignore time after a cast (s).</summary>
+    public const decimal DefaultTriggerIgnoreSeconds = 2.5m;
+
+    /// <summary>Lowest tone-filter bound (Hz).</summary>
+    public const decimal MinToneHz = 50m;
+
+    /// <summary>Highest tone-filter bound (Hz).</summary>
+    public const decimal MaxToneHz = 20000m;
+
+    /// <summary>Default lowest accepted spectral centroid (Hz).</summary>
+    public const decimal DefaultTriggerMinToneHz = 300m;
+
+    /// <summary>Default highest accepted spectral centroid (Hz).</summary>
+    public const decimal DefaultTriggerMaxToneHz = 3200m;
 }

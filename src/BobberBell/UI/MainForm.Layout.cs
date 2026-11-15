@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using BobberBell.Core.Logging;
+using BobberBell.Core.Settings;
 using BobberBell.Services;
 using BobberBell.UI.Controls;
 
@@ -337,7 +338,72 @@ internal sealed partial class MainForm
             Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
         });
 
+        BuildDetectionModeSection(p, 366);
         return p;
+    }
+
+    // Detection mode (fingerprint or volume trigger) and the volume-trigger settings.
+    private void BuildDetectionModeSection(Panel p, int top)
+    {
+        var tips = new ToolTip { AutoPopDelay = 15000 };
+        AddMutedLabel(p, "Detection mode", 24, top);
+        comboDetectionMode = MakeDarkCombo(24, top + 22, 440);
+        comboDetectionMode.Items.AddRange(new object[] { ModeFingerprintText, ModeVolumeTriggerText });
+        comboDetectionMode.SelectedIndex = 0;
+        comboDetectionMode.SelectedIndexChanged += (s, e) => UpdateDetectionModeControls();
+        tips.SetToolTip(comboDetectionMode,
+            "Fingerprint (default): a bite is the splash matching the target sound above.\n" +
+            "Volume trigger: a bite is a loud, low-pitched sound lasting a moment, after the cast.\n" +
+            "Use Volume trigger when the splash never matches, e.g. on private servers whose splash differs or varies.");
+        p.Controls.Add(comboDetectionMode);
+
+        AddMutedLabel(p, "Trigger level (dBFS)", 24, top + 66);
+        nudTriggerLevel = MakeNumeric(24, top + 88, 120, SettingsLimits.MinVolumeDb, SettingsLimits.MaxVolumeDb, SettingsLimits.DefaultTriggerLevelDb, 0.5m);
+        tips.SetToolTip(nudTriggerLevel, "A sound counts as loud at or above this level. Watch Live volume during a bite; set this well below the splash and above the background.");
+        p.Controls.Add(nudTriggerLevel);
+
+        AddMutedLabel(p, "Min. sound length (s)", 200, top + 66);
+        nudTriggerSeconds = MakeNumeric(200, top + 88, 120, SettingsLimits.MinTriggerSeconds, SettingsLimits.MaxTriggerSeconds, SettingsLimits.DefaultTriggerMinSeconds, 0.05m);
+        tips.SetToolTip(nudTriggerSeconds, "How long the sound must stay loud. A splash lasts 1.5-2 s; clicks and the cast sound are shorter.");
+        p.Controls.Add(nudTriggerSeconds);
+
+        AddMutedLabel(p, "Ignore after cast (s)", 376, top + 66);
+        nudTriggerIgnore = MakeNumeric(376, top + 88, 120, 0m, SettingsLimits.MaxTriggerIgnoreSeconds, SettingsLimits.DefaultTriggerIgnoreSeconds, 0.1m);
+        tips.SetToolTip(nudTriggerIgnore, "Sounds in the first seconds after each cast are ignored, so the cast itself is never taken for a bite.");
+        p.Controls.Add(nudTriggerIgnore);
+
+        chkToneFilter = new ToggleSwitch(ColCard, ColGold, ColBorder, ColText)
+        {
+            Text = "Splash tone filter",
+            ForeColor = ColText,
+            Location = new Point(552, top + 90),
+            Size = new Size(200, 24),
+            Checked = true,
+        };
+        tips.SetToolTip(chkToneFilter, "Only low-pitched sounds count (spectral centroid inside the tone range in settings.json, 300-3200 Hz by default). The cast sound is brighter.");
+        p.Controls.Add(chkToneFilter);
+
+        lblModeHint = new Label
+        {
+            ForeColor = ColMuted,
+            Location = new Point(24, top + 128),
+            Size = new Size(740, 40),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+        };
+        p.Controls.Add(lblModeHint);
+        UpdateDetectionModeControls();
+    }
+
+    private bool VolumeTriggerMode => comboDetectionMode.SelectedIndex == 1;
+
+    private void UpdateDetectionModeControls()
+    {
+        bool trigger = VolumeTriggerMode;
+        nudTriggerLevel.Enabled = nudTriggerSeconds.Enabled = nudTriggerIgnore.Enabled = chkToneFilter.Enabled = trigger;
+        nudSimilarity.Enabled = !trigger;
+        lblModeHint.Text = trigger
+            ? "Volume trigger: turn game music and ambience off. Test in detection-only mode first; ignored sounds are listed in the log with their length and tone."
+            : "Fingerprint: the target sound and Minimum similarity above decide what is a bite. Switch to Volume trigger if real bites never match.";
     }
 
     private Panel NewPage()

@@ -2,6 +2,14 @@
 
 All notable changes to BobberBell are documented here.
 
+## [1.0.4] - 2026-11-15
+
+### Added
+- **Volume trigger detection mode** (Audio tab, default stays Fingerprint). After an ignore time following each cast (2.5 s), a sound at or above the trigger level (-38 dBFS) for at least 0.6 s whose spectral centroid is 300-3200 Hz counts as a bite. For servers whose splash never matches the reference sounds. Rejected sounds are logged with length, level and tone. Uses the same reel-in, recovery cast, auto-stop and focus-pause flow.
+- `VolumeTriggerDetector` in `BobberBell.Core` with unit tests, plus a regression test against a private-server capture (run locally; the game audio is not committed).
+
+Existing settings files load unchanged (new keys default to Fingerprint mode). Licensing, trial and anti-tamper code are unchanged.
+
 ## [1.0.3] - 2026-11-15
 
 ### Fixed
@@ -78,6 +86,7 @@ First release.
 - .NET 10 (`net10.0-windows`), WinForms.
 - NAudio.Core, NAudio.Wasapi and NAudio.WinMM 2.2.1; SoundFingerprinting 17.4.0 with SoundFingerprinting.Audio.NAudio 8.0.0; H.InputSimulator 1.5.0.
 
+[1.0.4]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.4
 [1.0.3]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.3
 [1.0.2]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2
 [1.0.1]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1

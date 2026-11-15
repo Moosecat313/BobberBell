@@ -57,4 +57,25 @@ public sealed class AppSettings
 
     /// <summary>Gets or sets a value indicating whether a buff is applied before the first cast.</summary>
     public bool BuffOnStart { get; set; }
+
+    /// <summary>Gets or sets the detection mode: "Fingerprint" (default) or "VolumeTrigger".</summary>
+    public string DetectionMode { get; set; } = SettingsLimits.DefaultDetectionMode;
+
+    /// <summary>Gets or sets the volume-trigger level in dBFS (-80 to 0).</summary>
+    public decimal TriggerLevelDb { get; set; } = SettingsLimits.DefaultTriggerLevelDb;
+
+    /// <summary>Gets or sets how long a sound must stay loud to count as a bite, in seconds.</summary>
+    public decimal TriggerMinSeconds { get; set; } = SettingsLimits.DefaultTriggerMinSeconds;
+
+    /// <summary>Gets or sets the time ignored at the start of each listen window (the cast sound), in seconds.</summary>
+    public decimal TriggerIgnoreSeconds { get; set; } = SettingsLimits.DefaultTriggerIgnoreSeconds;
+
+    /// <summary>Gets or sets a value indicating whether the splash tone filter is on (default on).</summary>
+    public bool TriggerToneFilter { get; set; } = true;
+
+    /// <summary>Gets or sets the lowest accepted spectral centroid in Hz.</summary>
+    public decimal TriggerMinToneHz { get; set; } = SettingsLimits.DefaultTriggerMinToneHz;
+
+    /// <summary>Gets or sets the highest accepted spectral centroid in Hz.</summary>
+    public decimal TriggerMaxToneHz { get; set; } = SettingsLimits.DefaultTriggerMaxToneHz;
 }

@@ -60,6 +60,13 @@ internal sealed partial class MainForm : Form
     private Label lblStatus = null!, lblLiveSim = null!, lblLiveVol = null!, lblFooter = null!, lblPeak = null!, lblSession = null!, lblNextBuff = null!;
     private PictureBox pictureLogo = null!;
     private MeterBar barLiveSim = null!, barLiveVol = null!;
+    private ComboBox comboDetectionMode = null!;
+    private NumericUpDown nudTriggerLevel = null!, nudTriggerSeconds = null!, nudTriggerIgnore = null!;
+    private CheckBox chkToneFilter = null!;
+    private Label lblModeHint = null!;
+    private decimal triggerMinToneHz = SettingsLimits.DefaultTriggerMinToneHz, triggerMaxToneHz = SettingsLimits.DefaultTriggerMaxToneHz;
+    private const string ModeFingerprintText = "Fingerprint: match the splash sound (default)";
+    private const string ModeVolumeTriggerText = "Volume trigger: loud low splash after the cast";
     private CheckBox chkSendInputs = null!, chkAutoStop = null!, chkBuffEnabled = null!, chkBuffOnStart = null!;
     private Button btnBrowse = null!, btnStart = null!, btnStop = null!, btnSave = null!, btnRandomName = null!, btnApplyName = null!, btnLicense = null!;
     private Button tabAudio = null!, tabFishing = null!, tabBuff = null!, tabWindow = null!, tabLog = null!;

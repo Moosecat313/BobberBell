@@ -33,6 +33,14 @@ internal interface IAudioDetector : IAsyncDisposable
     /// <returns>The label of the sound heard, or <c>null</c> on timeout.</returns>
     Task<string?> ListenAsync(MMDevice? device, DetectionThresholds thresholds, TimeSpan window, CancellationToken ct);
 
+    /// <summary>Captures loopback audio until the volume trigger hears a bite or <paramref name="window"/> elapses.</summary>
+    /// <param name="device">Output device to capture, or <c>null</c> for the default device.</param>
+    /// <param name="options">Volume-trigger thresholds.</param>
+    /// <param name="window">Maximum listen time.</param>
+    /// <param name="ct">Cancellation token; throws <see cref="OperationCanceledException"/> when cancelled.</param>
+    /// <returns>A description of the sound heard, or <c>null</c> on timeout.</returns>
+    Task<string?> ListenVolumeTriggerAsync(MMDevice? device, VolumeTriggerOptions options, TimeSpan window, CancellationToken ct);
+
     /// <summary>Stops any capture immediately (used by Stop and on close).</summary>
     void Stop();
 }
