@@ -45,20 +45,30 @@ internal static class Program
         Console.WriteLine($"Thresholds: similarity >= {thresholds.MinSimilarity:0.00}, volume >= {thresholds.MinVolumeDb:0} dBFS");
 
         var clips = new List<(string Name, Func<ISampleProvider> Make, bool Expect)>();
+        var readers = new List<WaveFileReader>();
+        ISampleProvider Open(string path)
+        {
+            var reader = new WaveFileReader(path);
+            readers.Add(reader);
+            return reader.ToSampleProvider();
+        }
+
         foreach (var (path, label) in refs)
-            clips.Add((label, () => new WaveFileReader(path).ToSampleProvider(), true));
+            clips.Add((label, () => Open(path), true));
         // Controls are written to temporary WAVs so they take exactly the same playback path as the splashes.
         string tempDir = Path.Combine(Path.GetTempPath(), "bb-harness-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);
         string tone = WriteWav(Path.Combine(tempDir, "tone.wav"), Warble(44100, 3.0), 44100);
         string noise = WriteWav(Path.Combine(tempDir, "noise.wav"), Noise(44100, 2.0), 44100);
-        clips.Add(("Tone 880 Hz warble (control)", () => new WaveFileReader(tone).ToSampleProvider(), false));
-        clips.Add(("White noise burst (control)", () => new WaveFileReader(noise).ToSampleProvider(), false));
+        clips.Add(("Tone 880 Hz warble (control)", () => Open(tone), false));
+        clips.Add(("White noise burst (control)", () => Open(noise), false));
 
         int failures = 0;
         foreach (var clip in clips)
         {
             var r = await RunClipAsync(device, engine, thresholds, clip.Make()).ConfigureAwait(false);
+            readers.ForEach(x => x.Dispose());
+            readers.Clear();
             bool ok = clip.Expect ? r.Label == clip.Name : r.Label == null;
             if (!ok) failures++;
             Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
