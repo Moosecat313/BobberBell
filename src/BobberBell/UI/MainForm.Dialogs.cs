@@ -110,7 +110,7 @@ internal sealed partial class MainForm
              null),
             ("License",
              "The License button shows the version and license status.",
-             new[] { "The license is stored for your Windows user, tied to this PC, and checked at launch.", "Moving to a new PC means entering the code again." },
+             new[] { "The license is stored for your Windows user, tied to this PC, and checked at launch.", "Moving to a new PC means entering the code again.", "Without a license, each PC gets a 5-minute trial (total running time). During the trial, the License button or the gold line at the bottom asks for your key." },
              null),
         };
 

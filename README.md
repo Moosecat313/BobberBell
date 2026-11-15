@@ -13,7 +13,7 @@ Listens for a specific sound, then pushes a specified button, hands-free.</p>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1">Download v1.0.1</a> ·
+  <a href="https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2">Download v1.0.2</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#security">Security</a> ·
   <a href="#how-to-use">How to use</a> ·
@@ -56,7 +56,7 @@ casts again, with randomized timing, a session time limit and timed buffs.
 - **Window name:** custom or random window title.
 - **Log:** the Log tab lists bites, casts, buffs and errors, and also writes them to a log file.
 - **Look:** a navy and gold interface with a subtle glass/metallic finish.
-- **Licensing:** license-gated, with the license bound to the PC (offline; codes are stored only as salted PBKDF2 hashes).
+- **Licensing:** license-gated, with the license bound to the PC (offline; codes are stored only as salted PBKDF2 hashes). Each PC gets a 5-minute trial of total running time first.
 
 ## Architecture
 ```mermaid
@@ -86,7 +86,7 @@ The solution is split so that everything that can be tested without Windows, aud
 
 | Project | Target | Contents |
 |---|---|---|
-| `src/BobberBell.Core` | `net10.0` (any OS) | Detection engine (`SplashFingerprintEngine`, `ListenSession`: capture-format decoding, mono downmix, streaming 5512 Hz resampler, realtime fingerprint query with restart); settings model, validator and JSON store; license service; session timer and buff schedule; detection thresholds; key allow-list; sound-file path validator; redacting file logger. |
+| `src/BobberBell.Core` | `net10.0` (any OS) | Detection engine (`SplashFingerprintEngine`, `ListenSession`: capture-format decoding, mono downmix, streaming 5512 Hz resampler, realtime fingerprint query with restart); settings model, validator and JSON store; license service and trial service; session timer and buff schedule; detection thresholds; key allow-list; sound-file path validator; redacting file logger. |
 | `src/BobberBell` | `net10.0-windows` | WinForms UI (`UI/MainForm.*.cs` partials, `UI/Controls/*`), Windows services behind interfaces (`IAudioDetector` → `LoopbackFingerprintDetector`, `IInputSender` → `WindowsInputSender`, `IMachineIdProvider` → `RegistryMachineIdProvider`, `GlobalHotkeyHook`), and all P/Invoke in `Interop/NativeMethods.cs`. |
 | `tests/BobberBell.Tests` | `net10.0` | xUnit v3 tests for Core, including audio conversion and an end-to-end detection run of each bundled splash through simulated 48 kHz stereo loopback. |
 | `tools/BobberBell.DetectionHarness` | `net10.0-windows` | Console tool: plays each splash (and non-splash controls) through a real output device while the Core engine listens on that device's loopback, and prints the confidence per file. |
@@ -107,6 +107,7 @@ A short summary; details are in [SECURITY.md](SECURITY.md) and the STRIDE threat
 
 - **Untrusted inputs are validated:** `settings.json` is size-capped (64 KB), parsed with a strict source-generated contract (no comments, trailing commas, duplicate keys or string-typed numbers; max depth 8) and every value is clamped or allow-listed. Sound files must be WAV/MP3/FLAC/OGG, at most 50 MB, local (no UNC paths, which could leak NTLM credentials, no device paths or alternate data streams), and library sounds must resolve inside the app's `Sounds` folder.
 - **Licensing:** codes never appear in the binary or on disk, only salted PBKDF2-SHA256 hashes (200,000 iterations); comparisons are constant-time (`CryptographicOperations.FixedTimeEquals`); `license.dat` is bound to the PC with HMAC-SHA256 over the Windows MachineGuid and is never written unbound.
+- **Trial:** used seconds are signed with HMAC-SHA256 under a key derived from the MachineGuid, kept in a file and a registry mirror (the larger valid copy wins), counted with a monotonic clock and never decrease; edited or copied records end the trial. It is a client-side deterrent, documented as resettable by a determined user (see the threat model).
 - **Privacy:** audio is processed in memory only; nothing is recorded, uploaded or sent over the network (the app makes no network calls). Logs redact profile paths.
 - **Native code hygiene:** all P/Invoke resolves from System32 only (DLL-planting defence); the keyboard hook is read-only and ignores injected keys.
 - **Supply chain:** NuGet lock files with locked-mode restore in CI, NuGet audit plus a `dotnet list package --vulnerable` gate, Dependabot for NuGet and Actions, all Actions pinned to commit SHAs, least-privilege workflow tokens, gitleaks over the full git history, and CodeQL (`security-extended`).
@@ -126,18 +127,18 @@ A short summary; details are in [SECURITY.md](SECURITY.md) and the STRIDE threat
 
 ## Requirements
 - Windows 10 or 11, **x64**
-- The release zip (`BobberBell-1.0.1.zip`): the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
-- A BobberBell license key (asked for on first launch)
+- The release zip (`BobberBell-1.0.2.zip`): the [**.NET 10 Desktop Runtime (x64)**](https://dotnet.microsoft.com/download/dotnet/10.0). Self-contained builds and the installer from CI need no runtime.
+- A BobberBell license key (asked for on first launch), or use the 5-minute trial first
 
 ## Install
-1. Download **BobberBell-1.0.1.zip** from the [v1.0.1 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1).
+1. Download **BobberBell-1.0.2.zip** from the [v1.0.1 release](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2).
 2. Verify the download (optional but recommended). In PowerShell:
    ```powershell
-   Get-FileHash .\BobberBell-1.0.1.zip -Algorithm SHA256
+   Get-FileHash .\BobberBell-1.0.2.zip -Algorithm SHA256
    ```
-   It must match the SHA-256 listed for that file in the [release notes](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1).
+   It must match the SHA-256 listed for that file in the [release notes](https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2).
 3. Unzip anywhere, for example `C:\Games\BobberBell`, and keep the `Assets` and `Sounds` folders next to `BobberBell.exe`.
-4. Run `BobberBell.exe` and enter your license key.
+4. Run `BobberBell.exe` and enter your license key, or choose **Start trial** to try it first (5 minutes of total running time per PC).
 
 Builds from CI (`BobberBell-win-x64` artifact) contain the framework-dependent release zip, a self-contained single-file zip (no runtime needed), a per-user installer (no admin rights) and `SHA256SUMS.txt`.
 
@@ -195,7 +196,7 @@ The same guide is built into the app (**How to use** button).
 
 **11. Log and settings.** The Log tab lists bites, casts, buffs and errors. The Log confirms a key was sent, not that the game accepted it. **Save settings** stores your setup. Settings are not saved automatically on exit.
 
-**12. License.** The License button shows the version and license status. The license is stored for your Windows user, tied to this PC, and checked at launch. Moving to a new PC means entering the code again.
+**12. License.** The License button shows the version and license status. The license is stored for your Windows user, tied to this PC, and checked at launch. Moving to a new PC means entering the code again. Without a license, each PC gets a 5-minute trial (total running time). During the trial, the License button or the gold line at the bottom asks for your key.
 
 ## Settings and log files
 | What | Where |
@@ -203,6 +204,7 @@ The same guide is built into the app (**How to use** button).
 | Settings (written by **Save settings**, loaded at launch) | `%LOCALAPPDATA%\BobberBell\settings.json` |
 | Log | `%LOCALAPPDATA%\BobberBell\log.txt` (the Log tab's **Open folder** button opens it) |
 | License | `%APPDATA%\BobberBell\license.dat` (bound to this PC) |
+| Trial time used | `%LOCALAPPDATA%\BobberBell\trial.dat`, mirrored in `HKCU\Software\BobberBell` (signed, bound to this PC) |
 
 To reset to defaults, close BobberBell and delete `settings.json`. Data from the pre-release name (WeatherBug) is migrated automatically on first launch.
 
@@ -231,6 +233,9 @@ The release zip is framework-dependent: install the [.NET 10 Desktop Runtime (x6
 
 **It asks for a license key every time, or says the key is invalid.**
 Keys are at least 16 letters and numbers; dashes and spaces are ignored. The license is tied to your PC and Windows user, so a new PC or user needs the key again. If Windows' machine ID can't be read, the key works for that session only.
+
+**The trial ended or isn't offered.**
+The trial is 5 minutes of total running time per PC and doesn't reset. It isn't offered if the trial record was edited or copied from another PC, or if Windows' machine ID can't be read. Enter a license key to continue.
 
 **It closes right away with "Please close … and start BobberBell again."**
 A debugging or memory tool is running. Close it and start BobberBell again.

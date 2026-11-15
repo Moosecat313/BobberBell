@@ -109,7 +109,7 @@ jobs:
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           foreach ($zip in Get-ChildItem artifacts\*.zip) {
             $names = [IO.Compression.ZipFile]::OpenRead($zip.FullName).Entries.FullName
-            $bad = $names | Where-Object { $_ -match '(?i)(FriendCodes\.txt|license\.dat|settings\.json|log(\.old)?\.txt|\.pdb$)' }
+            $bad = $names | Where-Object { $_ -match '(?i)(FriendCodes\.txt|license\.dat|trial\.dat|settings\.json|log(\.old)?\.txt|\.pdb$)' }
             if ($bad) { Write-Error "$($zip.Name) contains files that must not ship: $bad"; exit 1 }
             "$($zip.Name): $($names.Count) files, none excluded"
           }

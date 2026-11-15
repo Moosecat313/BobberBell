@@ -30,13 +30,13 @@ flowchart LR
 | A1. The user's PC and Windows account | The app runs as the user; a bug that runs code or leaks credentials affects everything they own. |
 | A2. Keyboard/mouse input to other windows | Wrong or runaway input can act in the wrong window (chat, browser, terminal). |
 | A3. Privacy: system audio and the Windows user name | Loopback hears everything the PC plays; log files are often shared when asking for help. |
-| A4. License codes and license.dat | Unissued use; codes are shared among a small trusted group. |
+| A4. License codes, license.dat and the trial record | Unissued use; codes are shared among a small trusted group; the trial should give each PC 5 minutes once. |
 | A5. Build pipeline and dependencies | A compromised dependency or workflow ships malware to every user. |
 
 ## 3. Trust boundaries
 | # | Boundary | Data crossing it | Trust |
 |---|---|---|---|
-| TB1 | Files in the user profile → app | `settings.json`, `license.dat`, legacy WeatherBug files | **Untrusted**: any process running as the user, or a person with access to the profile, can edit them. |
+| TB1 | Files and registry in the user profile → app | `settings.json`, `license.dat`, `trial.dat`, `HKCU\Software\BobberBell\Trial`, legacy WeatherBug files | **Untrusted**: any process running as the user, or a person with access to the profile, can edit them. |
 | TB2 | User-chosen sound file → decoders | Path and file bytes (WAV/MP3/FLAC/OGG) | **Untrusted**: may come from the internet; decoders (NAudio, Media Foundation) parse complex formats. |
 | TB3 | Audio device → detector | PCM samples from whatever is playing | **Untrusted**: any app or web page can play sound. |
 | TB4 | App → other windows | `SendInput` keystrokes and XBUTTON clicks | Output boundary: must only reach the intended window. |
@@ -61,6 +61,7 @@ Status: **M** = mitigated, **P** = partially mitigated / accepted risk.
 | T3 | Malformed audio exploits a decoder. | Type and size limits above reduce exposure; decoding runs in the user's (non-admin) context; decoder errors are caught and logged. Decoder memory safety itself depends on NAudio / Media Foundation. | P |
 | T3b | Unexpected capture format or hostile sample values from the device (TB3). | The device format is validated before capture (`AudioSampleFormat`: known float/PCM encodings, sane rate, 1–32 channels, consistent block align; anything else is refused and logged). Decoding is bounds-checked managed code that ignores partial frames, and NaN/∞ samples are replaced with silence before resampling. A failing fingerprint query is logged once and restarted, so bad input cannot silently disable detection. Unit-tested. | M |
 | T4 | DLL planting next to the exe (e.g. a fake `dwmapi.dll` in Downloads). | Assembly-wide `DefaultDllImportSearchPaths(System32)` for every P/Invoke; installer installs per-user under `%LOCALAPPDATA%\Programs`. | M |
+| T4b | Resetting or extending the trial: editing `trial.dat` or the registry mirror, deleting one copy, copying a fresh record from another PC, or turning the clock back. | Used seconds are signed (`BT1\|seconds\|HMAC-SHA256`, key derived from the MachineGuid with a trial-specific label, distinct from the license binding); any record that fails the check or is out of range ends the trial; both copies are read and the larger valid value wins; used time is only ever raised; running time uses the monotonic tick count, so the wall clock is irrelevant; no MachineGuid means no trial. Unit-tested. Deleting *both* copies still resets it (see section 5a). | P |
 | T5 | Tampering with the binary to skip the license check. | Out of scope for a client-side check: see *Anti-tamper rationale and limits* below. | P |
 
 ### Repudiation
@@ -87,7 +88,7 @@ Status: **M** = mitigated, **P** = partially mitigated / accepted risk.
 ### Elevation of privilege
 | ID | Threat | Mitigation | Status |
 |---|---|---|---|
-| E1 | App or installer needs admin and widens the blast radius of any bug. | `asInvoker` (default manifest), per-user installer (`PrivilegesRequired=lowest`). The registry is only read. | M |
+| E1 | App or installer needs admin and widens the blast radius of any bug. | `asInvoker` (default manifest), per-user installer (`PrivilegesRequired=lowest`). The registry is read (MachineGuid) and written only under `HKCU\Software\BobberBell` (trial mirror). | M |
 | E2 | Injected input reaches an elevated or sensitive window. | Windows UIPI blocks `SendInput` into higher-integrity windows; S2 limits input to the captured window. | M |
 | E3 | Keyboard hook used as a keylogger. | The hook only reacts to physical F8/Esc key-downs, ignores injected keys, never stores or forwards keystrokes, and always calls `CallNextHookEx` so input passes through. | M |
 
@@ -98,7 +99,7 @@ Status: **M** = mitigated, **P** = partially mitigated / accepted risk.
 | Dependency substitution / drift | `packages.lock.json` for every project; CI restores with `--locked-mode`. |
 | Compromised or moved Action tag | Every Action is pinned to a full commit SHA (Dependabot updates the pins); gitleaks binary is checksum-verified. |
 | Over-privileged workflow token | `permissions: contents: read` by default; only CodeQL gets `security-events: write`; `persist-credentials: false` on checkout. |
-| Secret committed to git | gitleaks over the whole history on every push; `.gitignore` covers `FriendCodes.txt`, `license.dat*`, `settings.json`, logs. |
+| Secret committed to git | gitleaks over the whole history on every push; `.gitignore` covers `FriendCodes.txt`, `license.dat*`, `trial.dat*`, `settings.json`, logs; CI refuses to package any of them. |
 | Code defects | CodeQL `security-extended` on every push/PR and weekly; .NET analyzers at `latest` with all security rules, nullable reference types, warnings as errors. |
 | Non-reproducible artifacts | Deterministic compilation, `PathMap`, `ContinuousIntegrationBuild`, no PDBs in Release; SHA-256 sums published with CI artifacts. Code signing is prepared but off (see `docs/RELEASING.md`). |
 
@@ -117,6 +118,25 @@ after start-up, patching the IL (the app is managed and not obfuscated), or edit
 make code recovery expensive but cannot stop a patched binary from skipping the check. Real enforcement would need a server
 (online activation, signed short-lived tokens), which conflicts with the offline, no-network design. The check is therefore
 treated as a speed bump and documented as such; security does not depend on it.
+
+## 5a. Trial design and limits
+Without a stored license, each PC gets 5 minutes of total running time (`TrialService` in `BobberBell.Core`).
+
+- **Counting.** Time is counted while the app runs in trial mode, from `Environment.TickCount64` (monotonic, so changing the
+  Windows clock has no effect), rounded up to whole seconds, saved every 15 s and on close. A crash or kill loses at most 15 s.
+- **Storage.** `%LOCALAPPDATA%\BobberBell\trial.dat` and `HKCU\Software\BobberBell\Trial` hold the same record,
+  `BT1|<used seconds>|<HMAC-SHA256>`. The HMAC key is derived from the MachineGuid with a trial-specific label, so a record
+  from another PC does not verify. The larger valid copy wins and both are rewritten, so deleting one copy changes nothing.
+- **Fail closed.** A record that is malformed, out of range, unreadable, too large or signed for another PC ends the trial
+  (a key is still accepted). If the MachineGuid cannot be read there is no trial: an unbound trial could be reset just by
+  deleting files, so the safe choice is to require a key.
+- **At 0:00** detection and key sending stop, the user is asked for a key; a valid key continues licensed, anything else
+  closes the app.
+
+**Limits (accepted).** This is a client-side trial on a machine the user controls. The HMAC key derivation is in the
+(unobfuscated) binary, so a determined user can forge records, delete both copies, change the MachineGuid, or patch the
+check out. A real product would keep trial state on a server (per-account or per-device activation with signed, expiring
+tokens). Like the license and anti-tamper checks, the trial is a deterrent that keeps honest users honest.
 
 ## 6. Residual risks and follow-ups
 - Unsigned binaries trigger SmartScreen and can't be authenticated by users beyond the published SHA-256 sums. Enable code signing when a certificate is available.

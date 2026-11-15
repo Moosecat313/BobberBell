@@ -19,6 +19,9 @@ internal static class AppPaths
     /// <summary>Gets the log file path.</summary>
     internal static string LogPath { get; } = Path.Combine(AppDataDir, "log.txt");
 
+    /// <summary>Gets <c>%LOCALAPPDATA%\BobberBell\trial.dat</c> (signed used-trial seconds; mirrored in HKCU\Software\BobberBell).</summary>
+    internal static string TrialPath { get; } = Path.Combine(AppDataDir, "trial.dat");
+
     /// <summary>Gets <c>%APPDATA%\BobberBell\license.dat</c>.</summary>
     internal static string LicensePath { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BobberBell", "license.dat");

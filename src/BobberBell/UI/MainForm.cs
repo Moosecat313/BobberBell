@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 using BobberBell.Core.Input;
+using BobberBell.Core.Licensing;
 using BobberBell.Core.Logging;
 using BobberBell.Core.Session;
 using BobberBell.Core.Settings;
@@ -104,11 +105,14 @@ internal sealed partial class MainForm : Form
         hotkeys = new GlobalHotkeyHook(OnGlobalHotkey);
 
         migrationNotes.AddRange(LegacyDataMigrator.Migrate());
-        if (!CheckLicense())
+        var mode = CheckLicense();
+        if (mode == StartupMode.Exit)
         {
             Environment.Exit(0);
             return;
         }
+
+        trialMode = mode == StartupMode.Trial;
 
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(720, 780);
@@ -122,6 +126,12 @@ internal sealed partial class MainForm : Form
         PopulateSoundLibrary();
         AppendLog($"{ProductTitle} started");
         foreach (var note in migrationNotes) AppendLog(note);
+        migrationNotes.Clear();
+        if (trialMode)
+        {
+            AppendLog($"Trial mode: {TrialService.FormatRemaining(trial.RemainingSeconds)} of running time left on this PC");
+            ShowTrialFooter();
+        }
         LoadSettingsOnStartup(true);
         UpdateSessionStatus();
         Shown += (s, e) =>
@@ -148,6 +158,7 @@ internal sealed partial class MainForm : Form
         focusTimer?.Stop();
         hotkeys.Dispose();
         StopPreview();
+        if (trialMode) trial.Stop(); // save used trial time
         base.OnFormClosing(e);
     }
 

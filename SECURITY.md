@@ -33,6 +33,7 @@ rights (the installer is per-user and needs no admin).
 | Keyboard input stream | Sending keys to the wrong window; runaway automation | Send inputs off at every launch; inputs only while the captured game window is active; allow-listed keys; auto-stop (default 0.25 h, max 168 h); global F8/Esc stop |
 | Privacy (audio, user name) | Recording or leaking audio; user name in logs | Audio processed in memory only, nothing stored or sent; profile paths redacted in every log line |
 | License codes | Recovering codes from the binary; copying a license to another PC; timing attacks | Only salted PBKDF2-SHA256 hashes shipped; HMAC binding to MachineGuid; constant-time comparisons |
+| Trial | Resetting or extending the 5-minute trial | Signed, PC-bound record in a file and a registry mirror; max of both; monotonic clock; fails closed. Client-side by design (see threat model 5a) |
 | Build and supply chain | Vulnerable or swapped dependencies; leaked secrets; tampered Actions | Lock files + locked restore; vulnerability gate, NuGet audit, Dependabot; SHA-pinned Actions; least-privilege tokens; gitleaks; CodeQL |
 
 The full STRIDE analysis, trust boundaries and known limitations are in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).

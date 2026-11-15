@@ -2,6 +2,16 @@
 
 All notable changes to BobberBell are documented here.
 
+## [1.0.2] - 2026-11-15
+
+### Added
+- **5-minute trial per PC.** Without a stored license, BobberBell offers *Enter license key* or *Start / Continue trial (M:SS left)*. The trial counts total running time on this PC (monotonic clock), shows the time left at the bottom of the window, saves used time every 15 s and on close, and at 0:00 stops detection and key sending and asks for a key (a valid key continues licensed; otherwise the app closes). With no trial time left, start-up asks for a key exactly as before.
+- Trial state is stored as signed used-seconds (HMAC-SHA256 keyed from the PC's MachineGuid) in `%LOCALAPPDATA%\BobberBell\trial.dat` and mirrored in `HKCU\Software\BobberBell`; the larger valid copy wins and used time never decreases. An edited record, or one copied from another PC, ends the trial. If the MachineGuid can't be read there is no trial (a key is required).
+- `TrialService` in `BobberBell.Core` with 21 unit tests.
+
+### Security
+- `trial.dat` added to `.gitignore` and to the CI packaging guard. Licensing (`license.dat` format, PBKDF2 hashes, binding literal), `ProtectionCheck` and its blocklist are unchanged.
+
 ## [1.0.1] - 2026-11-15
 Bug-fix release, plus the engineering and security work from the portfolio branch.
 
@@ -56,5 +66,6 @@ First release.
 - .NET 10 (`net10.0-windows`), WinForms.
 - NAudio.Core, NAudio.Wasapi and NAudio.WinMM 2.2.1; SoundFingerprinting 17.4.0 with SoundFingerprinting.Audio.NAudio 8.0.0; H.InputSimulator 1.5.0.
 
+[1.0.2]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2
 [1.0.1]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.0

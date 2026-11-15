@@ -9,7 +9,7 @@
    - `BobberBell-<version>-win-x64-selfcontained.zip` – self-contained single-file exe plus `Assets\` and `Sounds\`,
    - `installer/BobberBell-<version>-setup.exe` – per-user Inno Setup installer,
    - `SHA256SUMS.txt`.
-   CI fails the build if any zip contains `FriendCodes.txt`, `license.dat`, `settings.json`, a log file or a `.pdb`.
+   CI fails the build if any zip contains `FriendCodes.txt`, `license.dat`, `trial.dat`, `settings.json`, a log file or a `.pdb`.
 4. Optionally run `tools/BobberBell.DetectionHarness` on a Windows PC with speakers or a headset
    (`BobberBell.DetectionHarness.exe "<output device name>"`) to confirm live detection of every bundled splash.
 5. Create the tag and GitHub release, attach the files and paste the SHA-256 sums into the release notes.

@@ -69,6 +69,12 @@ internal sealed partial class MainForm
         btnLicense = MakeGoldOutlineButton("License", 740, 56, 96, 32);
         btnLicense.Click += (s, e) =>
         {
+            if (trialMode)
+            {
+                EnterKeyDuringTrial(); // trial: the License button asks for a key
+                return;
+            }
+
             ShowLicenseDialog();
         };
         btnLicense.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -265,7 +271,7 @@ internal sealed partial class MainForm
 
         lblFooter = new Label
         {
-            Text = "4 s to focus the game. Inputs pause while the game window isn't active.",
+            Text = FooterHint,
             ForeColor = ColMuted,
             Location = new Point(20, 214),
             AutoSize = true
@@ -278,7 +284,7 @@ internal sealed partial class MainForm
         if (focusTimer == null)
         {
             focusTimer = new System.Windows.Forms.Timer { Interval = 300 };
-            focusTimer.Tick += (s, e) => { UpdateFocusStatus(); UpdateSessionStatus(); };
+            focusTimer.Tick += (s, e) => { UpdateFocusStatus(); UpdateSessionStatus(); UpdateTrial(); };
             focusTimer.Start();
         }
     }

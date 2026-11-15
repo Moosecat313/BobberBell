@@ -25,6 +25,7 @@ internal sealed partial class MainForm
         }
 
         if (isRunning) return;
+        if (trialMode && (trialEnding || trial.IsExpired)) return; // trial over: no new sessions
 
         StopPreview();
         gameWindow = IntPtr.Zero;
