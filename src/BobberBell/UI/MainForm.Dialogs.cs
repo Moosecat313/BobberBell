@@ -102,7 +102,7 @@ internal sealed partial class MainForm
             ("Log and settings",
              "The Log tab lists bites, casts, buffs and errors.",
              new[] {
-                 "Each bite names the sound heard, e.g. \"BobberSplash2 heard · 0.812s → reel in 1\".",
+                 "Each detected bite names the sound heard, e.g. \"Bite detected: BobberSplash2 · 0.812s → reel key sent → 1\".",
                  "Lines are also written to log.txt in %LOCALAPPDATA%\\BobberBell (Open folder on the Log tab).",
                  "The Log confirms a key was sent, not that the game accepted it.",
                  "Save settings writes settings.json to %LOCALAPPDATA%\\BobberBell. It loads on the next launch.",
