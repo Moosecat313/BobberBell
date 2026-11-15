@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to BobberBell are documented here.
+All notable changes to BobberBell are documented here. Only the latest release (1.0.6) is published; older entries are kept as history.
 
 ## [1.0.6] - 2026-11-15
 
@@ -98,9 +98,3 @@ First release.
 - NAudio.Core, NAudio.Wasapi and NAudio.WinMM 2.2.1; SoundFingerprinting 17.4.0 with SoundFingerprinting.Audio.NAudio 8.0.0; H.InputSimulator 1.5.0.
 
 [1.0.6]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.6
-[1.0.5]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.5
-[1.0.4]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.4
-[1.0.3]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.3
-[1.0.2]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.2
-[1.0.1]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.1
-[1.0.0]: https://github.com/Moosecat313/BobberBell/releases/tag/v1.0.0

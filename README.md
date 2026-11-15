@@ -46,7 +46,7 @@ casts again, with randomized timing, a session time limit and timed buffs.
 - [License](#license)
 
 ## Features
-- **Sound detection:** audio fingerprinting with a minimum-similarity threshold and a minimum-volume filter, plus live similarity and volume meters with a "peak" readout for calibration.
+- **Sound detection:** *Volume trigger* (default) counts a loud, low-pitched sound lasting a moment after the cast as a bite; *Fingerprint* matches the splash with a minimum-similarity threshold and a minimum-volume filter (for standard servers, needs tuning). Live similarity and volume meters with a "peak" readout help calibration.
 - **Built-in sounds:** **BobberSplash** loads three bobber-splash recordings, and any of them counts as a bite. You can also use your own recording (WAV, MP3, FLAC or OGG), and Preview plays the selected sound.
 - **Bite cycle:** a random 0.5–1.5 s reaction, then the fishing key reels in. After a random cast wait (default 1.5–2.5 s) it casts again. If nothing bites within 40 s, it makes a recovery cast.
 - **Auto-stop session:** on by default and set to 0.25 h. The maximum is 168 h, and 0 means no limit, which shows a warning.
@@ -223,7 +223,7 @@ dotnet build BobberBell.slnx -c Release          # warnings are errors
 dotnet test --solution BobberBell.slnx -c Release
 # self-contained single-file exe (no .NET runtime needed) in artifacts\publish\win-x64\
 dotnet publish src\BobberBell -c Release -p:PublishProfile=win-x64-singlefile
-# optional installer (Inno Setup 6): artifacts\installer\BobberBell-1.0.1-setup.exe
+# optional installer (Inno Setup 6): artifacts\installer\BobberBell-1.0.6-setup.exe
 iscc installer\BobberBell.iss
 ```
 On Linux, add `-p:EnableWindowsTargeting=true` to build the Windows project. Releasing and the optional code-signing step are described in [docs/RELEASING.md](docs/RELEASING.md).

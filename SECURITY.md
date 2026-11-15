@@ -3,7 +3,8 @@
 ## Supported versions
 | Version | Supported |
 |---|---|
-| 1.0.x | Yes |
+| 1.0.6 | Yes |
+| Older 1.0.x (no longer published) | No |
 | Pre-release (WeatherBug) | No |
 
 ## Reporting a vulnerability

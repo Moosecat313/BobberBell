@@ -13,6 +13,8 @@
 4. Optionally run `tools/BobberBell.DetectionHarness` on a Windows PC with speakers or a headset
    (`BobberBell.DetectionHarness.exe "<output device name>"`) to confirm live detection of every bundled splash.
 5. Create the tag and GitHub release, attach the files and paste the SHA-256 sums into the release notes.
+   Only the latest release is published: after the new release is verified, delete the previous release and its tag
+   (`gh release delete <old> --cleanup-tag`) and point README links at the new version.
 
 ## Local build
 ```powershell
