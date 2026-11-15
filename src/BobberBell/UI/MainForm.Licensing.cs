@@ -66,24 +66,10 @@ internal sealed partial class MainForm
 
         while (true)
         {
-            var keyButton = new TaskDialogCommandLinkButton("Enter license key", "Activate BobberBell on this PC.");
             string left = TrialService.FormatRemaining(trial.RemainingSeconds);
-            var trialButton = new TaskDialogCommandLinkButton(
-                trial.Status == TrialStatus.Fresh ? $"Start trial ({left} left)" : $"Continue trial ({left} left)",
-                "Five minutes of total running time per PC, then a license key is required.");
-            var page = new TaskDialogPage
-            {
-                Caption = "BobberBell",
-                Heading = "No license on this PC",
-                Text = "Enter your license key, or try BobberBell first.",
-                Icon = TaskDialogIcon.Information,
-                AllowCancel = true,
-                Buttons = { keyButton, trialButton, TaskDialogButton.Cancel },
-            };
-            page.Created += (s, e) => StartupDialogOwner.BringToFront(page.BoundDialog?.Handle ?? IntPtr.Zero);
-
-            var choice = TaskDialog.ShowDialog(owner, page, TaskDialogStartupLocation.CenterOwner);
-            if (choice == keyButton)
+            var choice = TrialChoiceForm.Ask(owner,
+                trial.Status == TrialStatus.Fresh ? $"Start trial ({left} left)" : $"Continue trial ({left} left)");
+            if (choice == StartupChoice.EnterKey)
             {
                 var outcome = PromptForKey(owner, true);
                 if (KeyPromptFlow.Next(KeyPromptContext.Startup, outcome, trial.IsAvailable) == KeyPromptNextStep.ContinueLicensed)
@@ -91,7 +77,7 @@ internal sealed partial class MainForm
                 continue; // cancelled or wrong key: back to the choice while trial time is left
             }
 
-            if (choice == trialButton)
+            if (choice == StartupChoice.Trial)
             {
                 trial.Start();
                 return StartupMode.Trial;

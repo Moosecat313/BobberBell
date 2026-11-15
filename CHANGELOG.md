@@ -7,7 +7,7 @@ All notable changes to BobberBell are documented here.
 ### Fixed
 - Cancelling the license key prompt (or pressing OK with nothing typed) no longer shows "Invalid license key." It counts as a cancel: at startup you go back to the trial choice while trial time is left, otherwise the app closes quietly; from the trial footer or the License button the prompt just closes; when the trial has ended the app closes. A wrong key still shows the error.
 - When BobberBell closes at startup (no key, a wrong key, or the start-up dialog cancelled), the reason, including why no trial was offered (for example an edited trial record), is now written to `log.txt` first.
-- The startup license and trial dialogs open centered and in front of a fullscreen game, with a taskbar button. Prompts shown while the app is running don't force themselves in front.
+- The startup license and trial dialogs open centered, top-most (in front of a fullscreen game) and with a taskbar button. The trial choice is now a regular dialog instead of a TaskDialog, because Windows won't raise a TaskDialog from a background launch above a fullscreen game. Prompts shown while the app is running don't force themselves in front.
 
 ### Added
 - `KeyPromptFlow` in `BobberBell.Core` (cancel detection and what happens after the key prompt) with unit tests.

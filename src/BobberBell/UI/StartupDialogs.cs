@@ -91,3 +91,85 @@ internal sealed class KeyEntryForm : Form
         return form.ShowDialog(owner) == DialogResult.OK ? form.input.Text : null;
     }
 }
+
+/// <summary>The startup choice between a license key and the trial.</summary>
+internal enum StartupChoice
+{
+    /// <summary>Closed or cancelled.</summary>
+    Cancel,
+
+    /// <summary>Enter a license key.</summary>
+    EnterKey,
+
+    /// <summary>Start or continue the trial.</summary>
+    Trial,
+}
+
+/// <summary>
+/// The startup "Enter license key / Start trial" dialog. A WinForms dialog rather than a TaskDialog so it can be created
+/// top-most (Windows won't let a background process raise a TaskDialog above a fullscreen game afterwards).
+/// </summary>
+internal sealed class TrialChoiceForm : Form
+{
+    private StartupChoice choice = StartupChoice.Cancel;
+
+    private TrialChoiceForm(string trialButtonText)
+    {
+        Text = "BobberBell";
+        FormBorderStyle = FormBorderStyle.FixedDialog;
+        MaximizeBox = false;
+        MinimizeBox = false;
+        ShowInTaskbar = false;
+        TopMost = true;
+        StartPosition = FormStartPosition.CenterScreen;
+        AutoScaleMode = AutoScaleMode.Font;
+        Font = new Font("Segoe UI", 9.5f);
+        ClientSize = new Size(500, 250);
+
+        var heading = new Label
+        {
+            Text = "No license on this PC",
+            Font = new Font("Segoe UI", 12f),
+            ForeColor = Color.FromArgb(0, 51, 153),
+            AutoSize = true,
+            Location = new Point(16, 14),
+        };
+        var text = new Label { Text = "Enter your license key, or try BobberBell first.", AutoSize = true, Location = new Point(16, 46) };
+        var key = ChoiceButton("Enter license key", "Activate BobberBell on this PC.", 76, StartupChoice.EnterKey);
+        var trial = ChoiceButton(trialButtonText, "Five minutes of total running time per PC, then a license key is required.", 136, StartupChoice.Trial);
+        var cancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Location = new Point(406, 208), Size = new Size(78, 28) };
+        Controls.AddRange(new Control[] { heading, text, key, trial, cancel });
+        CancelButton = cancel;
+        Shown += (s, e) => StartupDialogOwner.BringToFront(Handle);
+    }
+
+    /// <summary>Shows the choice.</summary>
+    /// <param name="owner">The startup owner window.</param>
+    /// <param name="trialButtonText">For example "Start trial (5:00 left)".</param>
+    /// <returns>What the user picked.</returns>
+    internal static StartupChoice Ask(IWin32Window owner, string trialButtonText)
+    {
+        using var form = new TrialChoiceForm(trialButtonText);
+        form.ShowDialog(owner);
+        return form.choice;
+    }
+
+    private Button ChoiceButton(string title, string note, int top, StartupChoice value)
+    {
+        var button = new Button
+        {
+            Text = title + Environment.NewLine + note,
+            AccessibleName = title,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Location = new Point(16, top),
+            Size = new Size(468, 52),
+            FlatStyle = FlatStyle.System,
+        };
+        button.Click += (s, e) =>
+        {
+            choice = value;
+            DialogResult = DialogResult.OK;
+        };
+        return button;
+    }
+}
