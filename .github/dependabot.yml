@@ -9,6 +9,11 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # NAudio 3.x breaks SoundFingerprinting.Audio.NAudio 8.0.0 (ISampleProvider.Read signature change).
+      # Re-enable once SoundFingerprinting.Audio.NAudio supports NAudio 3.
+      - dependency-name: "NAudio*"
+        update-types: ["version-update:semver-major"]
     groups:
       naudio:
         patterns: ["NAudio*"]
