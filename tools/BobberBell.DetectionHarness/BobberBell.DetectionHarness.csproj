@@ -19,7 +19,7 @@
     <PackageReference Include="NAudio.Midi" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="NAudio.WinForms" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="NAudio.WinMM" Version="2.2.1" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="SoundFingerprinting" Version="17.4.0" />
+    <PackageReference Include="SoundFingerprinting" Version="18.0.0" />
     <PackageReference Include="SoundFingerprinting.Audio.NAudio" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>

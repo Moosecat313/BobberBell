@@ -8,7 +8,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="SoundFingerprinting" Version="17.4.0" />
+    <PackageReference Include="SoundFingerprinting" Version="18.0.0" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="BobberBell.Tests" />

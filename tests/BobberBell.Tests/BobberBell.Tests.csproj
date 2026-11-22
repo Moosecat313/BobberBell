@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit.v3" Version="4.0.3" />
-    <PackageReference Include="SoundFingerprinting" Version="17.4.0" />
+    <PackageReference Include="SoundFingerprinting" Version="18.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
